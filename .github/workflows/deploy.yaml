@@ -44,6 +44,7 @@ jobs:
         run: |
           helm upgrade --install nova openstack-helm/nova \
               --namespace=openstack \
+              --timeout=600s \
               --set bootstrap.wait_for_computes.enabled=true \
               --set conf.ceph.enabled=true \
               --values nova/2023.2-ubuntu_jammy.yaml \
