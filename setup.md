@@ -275,8 +275,7 @@ helm upgrade --install nova openstack-helm/nova \
     --set bootstrap.wait_for_computes.enabled=true \
     --set conf.ceph.enabled=true \
     --values nova/2023.2-ubuntu_jammy.yaml \
-    --values nova/values_overrides/nova_conf.yml \
-    --values network_backend.yml \
+    --values nova/values_overrides/nova_conf.yml
     --values domain.yml
 
 mkdir -p ${OVERRIDES_DIR}/ovn/values_overrides
