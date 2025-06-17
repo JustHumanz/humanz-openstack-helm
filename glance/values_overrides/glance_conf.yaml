@@ -1,0 +1,6 @@
+conf:
+  glance:
+    rbd:
+      rbd_store_chunk_size: 8
+      rbd_store_replication: 1
+      rbd_store_crush_rule: replicated_rule

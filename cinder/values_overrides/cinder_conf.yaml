@@ -1,0 +1,7 @@
+conf:
+  ceph:
+    pools:
+      backup:
+        replication: 1
+      cinder.volumes:
+        replication: 1

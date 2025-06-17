@@ -1,0 +1,4 @@
+storage: rbd
+volume:
+  class_name: ceph-rbd
+  size: 10Gi

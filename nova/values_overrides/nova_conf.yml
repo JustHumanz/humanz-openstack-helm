@@ -1,0 +1,41 @@
+dependencies:
+  dynamic:
+    targeted:
+      openvswitch:
+        compute:
+          pod: []
+
+conf:
+  nova:
+    DEFAULT:
+      vif_plugging_is_fatal: true
+      vif_plugging_timeout: 300
+
+endpoints:
+  oslo_messaging:
+    statefulset:
+      replicas: 1
+
+pod:
+  probes:
+    rpc_timeout: 60
+    rpc_retries: 2
+    compute:
+      default:
+        liveness:
+          enabled: False
+        readiness:
+          enabled: False
+        startup:
+          enabled: False
+
+
+bootstrap:
+  structured:
+    flavors:
+      options:
+        m1_tiny_v2:
+          name: "m1_tiny_v2"
+          ram: 1024
+          disk: 1
+          vcpus: 1
