@@ -27,12 +27,11 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      # Install Helm
-      - name: Install Helm
+      # Check Helm
+      - name: Check Helm
         shell: bash
         run: |
-          sudo apt update
-          sudo apt install -y helm
+          which helm || (echo "Install helm on runner first" && exit 1)
 
       # Run helm upgrade
       - name: Update new config
