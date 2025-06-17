@@ -11,6 +11,7 @@ conf:
       vif_plugging_is_fatal: true
       vif_plugging_timeout: 300
       cpu_allocation_ratio: 8.0
+      ram_allocation_ratio: 1.0
 
 endpoints:
   oslo_messaging:
