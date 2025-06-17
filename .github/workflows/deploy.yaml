@@ -33,6 +33,13 @@ jobs:
         run: |
           which helm || (echo "Install helm on runner first" && exit 1)
 
+      # Add helm repo
+      - name: openstack helm repo
+        shell: bash
+        run: |
+          helm repo add openstack-helm https://tarballs.opendev.org/openstack/openstack-helm
+          helm plugin install https://opendev.org/openstack/openstack-helm-plugin
+
       # Run helm upgrade
       - name: Update new config
         run: |
@@ -41,5 +48,5 @@ jobs:
               --set bootstrap.wait_for_computes.enabled=true \
               --set conf.ceph.enabled=true \
               --values nova/2023.2-ubuntu_jammy.yaml \
-              --values nova/values_overrides/nova_conf.yml
+              --values nova/values_overrides/nova_conf.yml \
               --values domain.yml
