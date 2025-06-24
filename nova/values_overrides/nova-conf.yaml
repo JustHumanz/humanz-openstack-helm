@@ -15,6 +15,9 @@ conf:
     DEFAULT:
       vif_plugging_is_fatal: true
       vif_plugging_timeout: 300
+      cpu_allocation_ratio: 4.0
+      ram_allocation_ratio: 1.0
+      
     vnc:
       auth_schemes: none
 dependencies:
