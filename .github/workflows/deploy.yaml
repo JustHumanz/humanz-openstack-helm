@@ -39,7 +39,7 @@ jobs:
           gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output vpn/wg.conf vpn/wg.conf.enc
 
       # start vpn config
-      - name: Decrypt wg.conf with GPG
+      - name: Start wg
         run: |
           sudo wg-quick up vpn/wg.conf
 
@@ -56,11 +56,10 @@ jobs:
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sudo bash && mkdir -p ~/.kube/
 
       # Drop kubeconfig
-      - name: Install helm 
-        env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+      - name: Create kubeconfig
         run: |
-          echo $KUBECONFIG > ~/.kube/config
+          mkdir ${HOME}/.kube
+          echo ${{ secrets.KUBE_CONFIG }} | base64 --decode > ${HOME}/.kube/config
 
       # Add helm repo & Install plugin
       - name: openstack helm repo&plugin
