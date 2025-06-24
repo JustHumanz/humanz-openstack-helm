@@ -9,7 +9,7 @@ on:
     paths-ignore:
       - '.github/**'
     branches: [ "master" ]
-    #types: [opened, reopened]
+    types: [opened, reopened]
     
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -21,7 +21,7 @@ env:
 jobs:
   # This workflow contains a single job called "build"
   build:
-    #if: contains(github.event.pull_request.labels.*.name, 'nova')
+    if: contains(github.event.pull_request.labels.*.name, 'nova')
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
