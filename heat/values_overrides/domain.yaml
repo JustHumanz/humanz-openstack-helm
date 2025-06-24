@@ -1,0 +1,13 @@
+endpoints:
+  cloudformation:
+    host_fqdn_override:
+      public:
+        host: "cloudformation.ctl1-humanz.cloud"
+  orchestration:
+    host_fqdn_override:
+      public:
+        host: "heat.ctl1-humanz.cloud"
+  cloudwatch:
+    host_fqdn_override:
+      public:
+        host: "cloudwatch.ctl1-humanz.cloud"

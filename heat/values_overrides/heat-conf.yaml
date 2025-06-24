@@ -1,0 +1,44 @@
+endpoints:
+  identity:
+    hosts:
+      default: keystone-api
+      internal: keystone-api
+    scheme:
+      public: https
+    port:
+      api:
+        default: 5000
+        public: 443
+  orchestration:
+    hosts:
+      default: heat-api
+    scheme:
+      public: 'https'
+    port:
+      api:
+        default: 8004
+        public: 443
+  cloudformation:
+    hosts:
+      default: heat-cfn
+    scheme:
+      public: 'https'
+    port:
+      api:
+        default: 8000      
+        public: 443
+  # Cloudwatch does not get an entry in the keystone service catalog
+  cloudwatch:
+    hosts:
+      default: heat-cloudwatch
+    scheme:
+      public: 'https'
+    port:
+      api:
+        default: 8003
+        public: 443      
+manifests:
+  ingress_api: false
+  ingress_cfn: false
+  service_ingress_api: false
+  service_ingress_cfn: false

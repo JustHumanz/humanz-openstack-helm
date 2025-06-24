@@ -1,7 +1,4 @@
-kubectl create ns openstack
-kubectl create ns ingress-nginx
-kubectl taint nodes -l 'node-role.kubernetes.io/control-plane' node-role.kubernetes.io/control-plane-
- 
+## Setup ceph
 mkdir -p /opt/cephadm;cd /opt/cephadm
 curl --silent --remote-name --location https://github.com/ceph/ceph/raw/quincy/src/cephadm/cephadm
 chmod +x cephadm
@@ -9,9 +6,10 @@ chmod +x cephadm
 ./cephadm install
 cephadm install ceph-common
 mkdir -p /etc/ceph
-cephadm bootstrap --mon-ip 38.129.16.38
+cephadm bootstrap --mon-ip 192.168.18.100
 sudo apparmor_parser -R /etc/apparmor.d/MongoDB_Compass
 
+### Create local disk
 fallocate /var/lib/openstack-helm/osdX.img -l X0G
 losetup /dev/loopX0 /var/lib/openstack-helm/osdX.img
 ceph orch daemon add osd $HOSTNAME:/dev/loop10 raw
@@ -22,10 +20,16 @@ ceph osd pool create kube replicated_rule 32 32
 ceph osd pool application enable kube rbd
 ceph osd pool set kube size 1 --yes-i-really-mean-it
 
+### Create dummy interface
 ip link add fip type dummy
 ip add add 172.16.18.1/24 dev fip
 ip link set fip up
 
+kubectl create ns openstack
+kubectl create ns ingress-nginx
+kubectl taint nodes -l 'node-role.kubernetes.io/control-plane' node-role.kubernetes.io/control-plane-
+
+### Import external ceph as rook 
 curl -s https://raw.githubusercontent.com/rook/rook/release-1.17/deploy/examples/create-external-cluster-resources.py > create-external-cluster-resources.py
 python3 create-external-cluster-resources.py --rbd-data-pool-name kube --namespace rook-ceph-external --format bash
 >export NAMESPACE=rook-ceph-external
@@ -87,11 +91,8 @@ kubectl create secret generic pvc-ceph-client-key -n openstack --from-file=/tmp/
 helm repo add openstack-helm https://tarballs.opendev.org/openstack/openstack-helm
 helm plugin install https://opendev.org/openstack/openstack-helm-plugin
 
-mkdir ~/osh
+mkdir -p ~/osh/overrides
 cd ~/osh
-git clone https://opendev.org/openstack/openstack-helm.git
-git clone https://opendev.org/zuul/zuul-jobs.git
-
 
 kubectl label --overwrite nodes --all openstack-control-plane=enabled
 kubectl label --overwrite nodes --all openstack-compute-node=enabled
@@ -118,236 +119,114 @@ export OPENSTACK_RELEASE=2023.2
 export FEATURES="${OPENSTACK_RELEASE} ubuntu_jammy"
 # Directory where values overrides are looked up or downloaded to.
 export OVERRIDES_DIR=$(pwd)/overrides
+cd $OVERRIDES_DIR
 
-tee ${OVERRIDES_DIR}/domain.yml <<EOF
+## Setup Password
+go to [password](password.md)
+
+## Setup Infra
+
+helm install cert-manager jetstack/cert-manager --namespace cert-manager \
+   --version v1.16.1 \
+   --set installCRDs=true \
+   --set extraArgs[0]="--enable-certificate-owner-ref=true" \
+   --timeout=600s
+
+tee cert-manager/self-cert.yaml <<EOF
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+ name: humanz-cloud-selfsigned-issuer
+spec:
+ selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-cluster-issuer
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+ name: humanz-cloud-selfsigned-tls
+spec:
+ secretName: humanz-cloud-tls
+ isCA: true
+ issuerRef:
+   name: humanz-cloud-selfsigned-issuer
+   kind: Issuer
+ commonName: "*.ctl1-humanz.cloud"
+ dnsNames:
+ - "*.ctl1-humanz.cloud"
+EOF
+kubectl -n openstack apply -f cert-manager/self-cert.yaml
+kubectl get secret humanz-cloud-tls -n openstack -o jsonpath="{.data['tls\.crt']}" | base64 -d | sudo tee -a /etc/ssl/certs/ca-certificates.crt
+
+### Rabbitmq
+mkdir -p rabbitmq/values_overrides/
+tee rabbitmq/values_overrides/password.yaml <<EOF
 endpoints:
-  identity:
-    host_fqdn_override:
-      public:
-        host: "cinder.ctl1-humanz.cloud"
-  cloudformation:
-    host_fqdn_override:
-      public:
-        host: "cloudformation.ctl1-humanz.cloud"
-  orchestration:
-    host_fqdn_override:
-      public:
-        host: "heat.ctl1-humanz.cloud"
-  image:
-    host_fqdn_override:
-      public:
-        host: "glance.ctl1-humanz.cloud"
-  dashboard:
-    host_fqdn_override:
-      public:
-        host: "horizon.ctl1-humanz.cloud"
-  volumev3:
-    host_fqdn_override:
-      public:
-        host: "cinder.ctl1-humanz.cloud"
-  compute:
-    host_fqdn_override:
-      public:
-        host: "nova.ctl1-humanz.cloud"
-  compute_novnc_proxy:
-    host_fqdn_override:
-      public:
-        host: "vnc.ctl1-humanz.cloud"
-  network:
-    host_fqdn_override:
-      public:
-        host: "neutron.ctl1-humanz.cloud"
+  oslo_messaging:
+    auth:
+      user:
+        password: "$osh_rabbitmq_password"
 EOF
 
-tee ${OVERRIDES_DIR}/network_backend.yml <<EOF
-network:
-  backend:
-    - ovn
-EOF
-
-tee ${OVERRIDES_DIR}/volume.yml <<EOF
-volume:
-  class_name: ceph-rbd
-  ovn_ovsdb_nb:
-    class_name: ceph-rbd
-  ovn_ovsdb_sb:
-    class_name: ceph-rbd  
-EOF
-
-cd ${OVERRIDES_DIR}
-
-helm upgrade --install rabbitmq openstack-helm/rabbitmq --namespace=openstack \
+helm upgrade --install rabbitmq openstack-helm/rabbitmq \
+    --timeout=600s \
+    --namespace=openstack \
     --set pod.replicas.server=1 \
-    --timeout=600s \
-    --values rabbitmq/2023.2-ubuntu_jammy.yaml \
-    --values volume.yml
+    --set volume.class_name=ceph-rbd \
+    $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c rabbitmq ${FEATURES} values_overrides/password)
 
-helm upgrade --install mariadb openstack-helm/mariadb --namespace=openstack\
-     --set pod.replicas.server=1 \
-     --timeout=600s \
-     --values volume.yml
-
-helm upgrade --install memcached openstack-helm/memcached --namespace=openstack 
-
-helm upgrade --install keystone openstack-helm/keystone --namespace=openstack \
-     --values keystone/2023.2-ubuntu_jammy.yaml \
-     --timeout=600s \
-     --values domain.yml
-
-helm upgrade --install heat openstack-helm/heat --namespace=openstack \
-     --values heat/2023.2-ubuntu_jammy.yaml \
-     --timeout=600s \
-     --values domain.yml
-
-
-mkdir ${OVERRIDES_DIR}/glance/values_overrides/
-tee ${OVERRIDES_DIR}/glance/values_overrides/glance_pvc_storage.yaml <<EOF
-storage: rbd
-volume:
-  class_name: ceph-rbd
-  size: 10Gi
+### Mariadb
+mkdir -p mariadb/values_overrides/
+tee mariadb/values_overrides/password.yaml <<EOF
+endpoints:
+  oslo_db:
+    auth:
+      admin:
+        password: "$osh_mariadb_password"
 EOF
 
-tee ${OVERRIDES_DIR}/glance/values_overrides/glance_conf.yaml <<EOF
-conf:
-  glance:
-    rbd:
-      rbd_store_chunk_size: 8
-      rbd_store_replication: 1
-      rbd_store_crush_rule: replicated_rule
-EOF
-
-
-helm upgrade --install glance openstack-helm/glance \
-    --namespace=openstack \
-    --timeout=600s \
-    --values glance/2023.2-ubuntu_jammy.yaml \
-    --values glance/values_overrides/glance_pvc_storage.yaml \
-    --values glance/values_overrides/glance_conf.yaml \
-    --values domain.yml
-
-mkdir ${OVERRIDES_DIR}/cinder/values_overrides/
-tee ${OVERRIDES_DIR}/cinder/values_overrides/cinder_conf.yaml <<EOF
-conf:
-  ceph:
-    pools:
-      backup:
-        replication: 1
-      cinder.volumes:
-        replication: 1
-EOF
-
-helm upgrade --install cinder openstack-helm/cinder \
-    --namespace=openstack \
-    --timeout=600s \
-    --values cinder/2023.2-ubuntu_jammy.yaml \
-    --values cinder/values_overrides/cinder_conf.yaml \
-    --values domain.yml
-
-mkdir ${OVERRIDES_DIR}/openvswitch/values_overrides/
-tee ${OVERRIDES_DIR}/openvswitch/values_overrides/openvswitch_conf.yaml <<EOF
----
-conf:
-  openvswitch_db_server:
-    ptcp_port: 6640
-EOF
-helm upgrade --install openvswitch openstack-helm/openvswitch \
+helm upgrade --install mariadb openstack-helm/mariadb \
     --timeout=600s \
     --namespace=openstack \
-    --values openvswitch/ubuntu_jammy.yaml \
-    --values openvswitch/values_overrides/openvswitch_conf.yaml
+    --set pod.replicas.server=1 \
+    --set volume.class_name=ceph-rbd \
+    $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c mariadb ${FEATURES} values_overrides/password)
 
-helm upgrade --install libvirt openstack-helm/libvirt \
+helm upgrade --install memcached openstack-helm/memcached \
     --namespace=openstack \
-    --timeout=600s \
-    --set conf.ceph.enabled=true \
-    --values libvirt/2023.2-ubuntu_jammy.yaml \
-    --values network_backend.yml 
+    $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c memcached ${FEATURES})
 
-helm upgrade --install placement openstack-helm/placement \
-    --namespace=openstack \
-    --timeout=600s \
-    --values placement/2023.2-ubuntu_jammy.yaml \
-    --values domain.yml
+## Setup keystone
+- [Keystone](setup/keystone.md)
+- [Heat](setup/heat.md)
+- [Glance](setup/glance.md)
+- [Cinder](setup/cinder.md)
+- [OpenvSwitch](setup/ovs.md)
+- [OVN](setup/ovn.md)
+- [Libvirt](setup/libvirt.md)
+- [Palcement](setup/placement.md)
+- [Nova](setup/nova.md)
+- [Neutron](setup/neutron.md)
+- [Horizon](setup/horizon.md)  
 
-helm upgrade --install nova openstack-helm/nova \
-    --namespace=openstack \
-    --set bootstrap.wait_for_computes.enabled=true \
-    --set conf.ceph.enabled=true \
-    --values nova/2023.2-ubuntu_jammy.yaml \
-    --values nova/values_overrides/nova_conf.yml
-    --values domain.yml
+Exec it in order and if libvirt&nova pods isn't running or stuck at init you can ignore it until you deploy neutron 
 
-mkdir -p ${OVERRIDES_DIR}/ovn/values_overrides
-tee ${OVERRIDES_DIR}/ovn/values_overrides/ovn-conf.yaml << EOF
-conf:
-  ovn_cms_options: "enable-chassis-as-gw,availability-zones=nova"
-  ovn_bridge_mappings: public:br-ex
-  auto_bridge_add:
-    br-ex: fip
-EOF
-
-helm upgrade --install ovn openstack-helm/ovn \
-    --namespace=openstack \
-    --values ovn/ubuntu_jammy.yaml \
-    --values ovn/values_overrides/volume.yml \
-    --values volume.yml
-
-mkdir -p ${OVERRIDES_DIR}/neutron/values_overrides
-tee ${OVERRIDES_DIR}/neutron/values_overrides/neutron_config.yaml << EOF
----
-network:
-  backend:
-    - openvswitch
-    - ovn
-
-conf:
-  neutron:
-    DEFAULT:
-      router_distributed: True
-      service_plugins: ovn-router
-      l3_ha_network_type: geneve
-  plugins:
-    ml2_conf:
-      ml2:
-        extension_drivers: port_security
-        type_drivers: flat,vxlan,geneve
-        tenant_network_types: geneve
-      ovn:
-        ovn_l3_scheduler: leastloaded
-        dns_servers: 8.8.8.8,1.1.1.1
-        neutron_sync_mode: repair
-
-manifests:
-  daemonset_dhcp_agent: false
-  daemonset_l3_agent: false
-  daemonset_metadata_agent: false
-  daemonset_ovs_agent: false
-  deployment_rpc_server: false
-
-  daemonset_ovn_metadata_agent: true   
-EOF
-
-helm upgrade --install neutron openstack-helm/neutron \
-    --namespace=openstack \
-    --values neutron/2023.2-ubuntu_jammy.yaml \
-    --values neutron/values_overrides/neutron_config.yaml \
-    --values domain.yml
-
-
-helm upgrade --install horizon openstack-helm/horizon \
-    --namespace=openstack \
-    --values horizon/2023.2-ubuntu_jammy.yaml \
-    --values domain.yml
-
-
+Source: https://docs.openstack.org/openstack-helm/latest/install/openstack.html
 
 ---
-
+export clusterNamespace="rook-ceph-external"
+tee /tmp/ceph-mon.yaml <<EOF
 apiVersion: v1
 kind: Service
 metadata:
   name: ceph-mons
+  namespace: $clusterNamespace
 spec:
   ports:
     - name: ceph-mon-v2
@@ -364,6 +243,7 @@ apiVersion: discovery.k8s.io/v1
 kind: EndpointSlice
 metadata:
   name: ceph-mons-1
+  namespace: $clusterNamespace
   labels:
     kubernetes.io/service-name: ceph-mons
 addressType: IPv4
@@ -377,3 +257,4 @@ ports:
 endpoints:
   - addresses:
       - "192.168.18.100"
+EOF

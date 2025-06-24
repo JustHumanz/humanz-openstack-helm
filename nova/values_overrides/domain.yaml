@@ -1,0 +1,9 @@
+endpoints:
+  compute:
+    host_fqdn_override:
+      public:
+        host: "nova.ctl1-humanz.cloud"
+  compute_novnc_proxy:
+    host_fqdn_override:
+      public:
+        host: "vnc.ctl1-humanz.cloud"

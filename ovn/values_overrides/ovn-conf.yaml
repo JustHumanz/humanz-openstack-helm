@@ -3,3 +3,9 @@ conf:
   ovn_bridge_mappings: public:br-ex
   auto_bridge_add:
     br-ex: fip
+
+volume:
+  ovn_ovsdb_nb:
+    class_name: ceph-rbd
+  ovn_ovsdb_sb:
+    class_name: ceph-rbd

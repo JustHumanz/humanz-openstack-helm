@@ -1,0 +1,11 @@
+endpoints:
+  identity:
+    scheme:
+      public: https
+    port:
+      api:
+        default: 5000
+        public: 443
+manifests:
+  ingress_api: false
+  service_ingress_api: false

@@ -1,0 +1,49 @@
+pod:
+  security_context:
+    cinder_volume:
+      container:
+        cinder_volume:
+          privileged: true
+conf:
+  ceph:
+    pools:
+      backup:
+        replication: 1
+      cinder.volumes:
+        replication: 1
+  cinder:
+    DEFAULT:
+      os_region_name: RegionOne
+endpoints:
+  identity:
+    hosts:
+      default: keystone-api
+      internal: keystone-api
+    scheme:
+      public: https
+    port:
+      api:
+        default: 5000
+        public: 443
+  image:
+    hosts:
+      default: glance-api
+      internal: glance-api
+    scheme:
+      public: https
+    port:
+      api:
+        default: 9292
+        public: 80
+  volumev3:
+    hosts:
+      default: cinder-api
+    scheme:
+      public: 'https'
+    port:
+      api:
+        default: 8776
+        public: 443
+manifests:
+  ingress_api: false
+  service_ingress_api: false

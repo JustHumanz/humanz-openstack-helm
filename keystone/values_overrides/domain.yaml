@@ -1,0 +1,5 @@
+endpoints:
+  identity:
+    host_fqdn_override:
+      public:
+        host: "keystone.ctl1-humanz.cloud"
