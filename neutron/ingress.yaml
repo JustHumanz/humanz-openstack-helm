@@ -9,7 +9,7 @@ spec:
   tls:
     - hosts:
         - "neutron.ctl1-humanz.cloud"
-      secretName: osh-wildcard
+      secretName: humanz-cloud-tls
   ingressClassName: nginx
   rules:
   - host: neutron.ctl1-humanz.cloud

@@ -10,7 +10,7 @@ spec:
     - hosts:
         - "heat.ctl1-humanz.cloud"
         - "cloudformation.ctl1-humanz.cloud"
-      secretName: osh-wildcard
+      secretName: humanz-cloud-tls
   ingressClassName: nginx
   rules:
   - host: heat.ctl1-humanz.cloud

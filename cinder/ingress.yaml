@@ -9,7 +9,7 @@ spec:
   tls:
     - hosts:
         - "cinder.ctl1-humanz.cloud"
-      secretName: osh-wildcard
+      secretName: humanz-cloud-tls
   ingressClassName: nginx
   rules:
   - host: cinder.ctl1-humanz.cloud

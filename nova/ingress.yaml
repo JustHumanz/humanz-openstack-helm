@@ -12,7 +12,7 @@ spec:
     - hosts:
         - "nova.ctl1-humanz.cloud"
         - "vnc.ctl1-humanz.cloud"
-      secretName: osh-wildcard
+      secretName: humanz-cloud-tls
   ingressClassName: nginx
   rules:
   - host: nova.ctl1-humanz.cloud
