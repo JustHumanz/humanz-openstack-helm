@@ -38,6 +38,11 @@ jobs:
         run: |
           gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output vpn/wg.conf vpn/wg.conf.enc
 
+      # start vpn config
+      - name: Decrypt wg.conf with GPG
+        run: |
+          sudo wg-quick up vpn/wg.conf
+
       # Check VPN connection
       - name: Check keystone endpoint
         shell: bash
