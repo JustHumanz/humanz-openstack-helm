@@ -1,4 +1,3 @@
----
 network:
   backend:
     - openvswitch
@@ -21,6 +20,17 @@ conf:
         dns_servers: 8.8.8.8,1.1.1.1
         neutron_sync_mode: repair
 
+endpoints:
+  network:
+    hosts:
+      default: neutron-server
+      internal: neutron-server
+    scheme:
+      public: 'https'
+    port:
+      api:
+        public: 443
+
 manifests:
   daemonset_dhcp_agent: false
   daemonset_l3_agent: false
@@ -28,4 +38,6 @@ manifests:
   daemonset_ovs_agent: false
   deployment_rpc_server: false
 
-  daemonset_ovn_metadata_agent: true   
+  daemonset_ovn_metadata_agent: true  
+  ingress_server: false
+  service_ingress_server: false          

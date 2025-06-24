@@ -1,3 +1,0 @@
-network:
-  backend:
-    - ovn

@@ -1,0 +1,74 @@
+pod:
+  probes:
+    rpc_timeout: 60
+    rpc_retries: 2
+    compute:
+      default:
+        liveness:
+          enabled: False
+        readiness:
+          enabled: False
+        startup:
+          enabled: False
+conf:
+  nova:
+    DEFAULT:
+      vif_plugging_is_fatal: true
+      vif_plugging_timeout: 300
+    vnc:
+      auth_schemes: none
+dependencies:
+  dynamic:
+    targeted:
+      openvswitch:
+        compute:
+          pod: []
+
+endpoints:
+  oslo_messaging:
+    statefulset:
+      replicas: 1
+  identity:
+    hosts:
+      default: keystone-api
+      internal: keystone-api
+  image:
+    hosts:
+      default: glance-api
+      internal: glance-api
+  compute:
+    hosts:
+      default: nova-api
+    scheme:
+      public: 'https'
+    port:
+      api:
+        public: 443
+      novncproxy:
+        default: 6080
+  compute_metadata:
+    hosts:
+      default: nova-metadata
+    port:
+      metadata:
+        public: 8775
+  compute_novnc_proxy:
+    scheme:
+      public: 'http'
+    port:
+      novnc_proxy:
+        public: 6080
+manifests:
+  deployment_consoleauth: false
+  deployment_placement: false
+  ingress_metadata: false
+  ingress_novncproxy: true
+  ingress_osapi: false
+  ingress_placement: false
+  ingress_spiceproxy: false
+  service_ingress_metadata: false
+  service_ingress_novncproxy: true
+  service_ingress_osapi: false
+  service_ingress_placement: false
+  service_placement: false
+  service_ingress_spiceproxy: false

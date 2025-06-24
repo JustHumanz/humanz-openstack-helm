@@ -1,0 +1,5 @@
+endpoints:
+  network:
+    host_fqdn_override:
+      public:
+        host: "neutron.ctl1-humanz.cloud"

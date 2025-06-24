@@ -1,0 +1,30 @@
+storage: rbd
+conf:
+  glance:
+    rbd:
+      rbd_store_chunk_size: 8
+      rbd_store_replication: 1
+      rbd_store_crush_rule: replicated_rule
+endpoints:
+  identity:
+    hosts:
+      default: keystone-api
+      internal: keystone-api
+    scheme:
+      public: https
+    port:
+      api:
+        default: 5000
+        public: 443
+  image:
+    hosts:
+      default: glance-api
+    scheme:
+      public: https
+    port:
+      api:
+        default: 9292
+        public: 443     
+manifests:
+  ingress_api: false
+  service_ingress_api: false

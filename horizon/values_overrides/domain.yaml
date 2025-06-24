@@ -1,0 +1,5 @@
+endpoints:
+  dashboard:
+    host_fqdn_override:
+      public:
+        host: "horizon.ctl1-humanz.cloud"  
