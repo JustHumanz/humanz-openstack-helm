@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: horizon
+  namespace: openstack
+spec:
+  tls:
+    - hosts:
+        - "horizon.ctl1-humanz.cloud"
+      secretName: humanz-cloud-tls
+  ingressClassName: nginx
+  rules:
+  - host: horizon.ctl1-humanz.cloud
+    http:
+      paths:
+      - backend:
+          service:
+            name: horizon-int
+            port:
+              name: web
+        path: /
+        pathType: Prefix

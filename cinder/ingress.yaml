@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: cinder
+  namespace: openstack
+spec:
+  tls:
+    - hosts:
+        - "cinder.ctl1-humanz.cloud"
+      secretName: osh-wildcard
+  ingressClassName: nginx
+  rules:
+  - host: cinder.ctl1-humanz.cloud
+    http:
+      paths:
+      - backend:
+          service:
+            name: cinder-api
+            port:
+              name: c-api
+        path: /
+        pathType: Prefix

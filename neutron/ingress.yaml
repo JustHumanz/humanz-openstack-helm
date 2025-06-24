@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: neutron
+  namespace: openstack
+spec:
+  tls:
+    - hosts:
+        - "neutron.ctl1-humanz.cloud"
+      secretName: osh-wildcard
+  ingressClassName: nginx
+  rules:
+  - host: neutron.ctl1-humanz.cloud
+    http:
+      paths:
+      - backend:
+          service:
+            name: neutron-server
+            port:
+              name: q-api
+        path: /
+        pathType: Prefix

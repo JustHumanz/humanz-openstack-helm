@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: heat
+  namespace: openstack
+spec:
+  tls:
+    - hosts:
+        - "heat.ctl1-humanz.cloud"
+        - "cloudformation.ctl1-humanz.cloud"
+      secretName: osh-wildcard
+  ingressClassName: nginx
+  rules:
+  - host: heat.ctl1-humanz.cloud
+    http:
+      paths:
+      - backend:
+          service:
+            name: heat-api
+            port:
+              name: h-api
+        path: /
+        pathType: Prefix
+  - host: cloudformation.ctl1-humanz.cloud
+    http:
+      paths:
+      - backend:
+          service:
+            name: heat-cfn
+            port:
+              name: h-cfn
+        path: /
+        pathType: Prefix

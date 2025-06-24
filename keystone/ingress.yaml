@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: keystone
+  namespace: openstack
+spec:
+  tls:
+    - hosts:
+        - "keystone.ctl1-humanz.cloud"
+      secretName: osh-wildcard
+  ingressClassName: nginx
+  rules:
+  - host: keystone.ctl1-humanz.cloud
+    http:
+      paths:
+      - backend:
+          service:
+            name: keystone-api
+            port:
+              name: ks-pub
+        path: /
+        pathType: Prefix

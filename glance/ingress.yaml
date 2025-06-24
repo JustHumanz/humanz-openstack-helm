@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: glance
+  namespace: openstack
+spec:
+  tls:
+    - hosts:
+        - "glance.ctl1-humanz.cloud"
+      secretName: osh-wildcard
+  ingressClassName: nginx
+  rules:
+  - host: glance.ctl1-humanz.cloud
+    http:
+      paths:
+      - backend:
+          service:
+            name: glance-api
+            port:
+              name: g-api
+        path: /
+        pathType: Prefix
