@@ -1,6 +1,6 @@
 # Setup helm manifest
 
-```
+```bash
 mkdir -p cinder/values_overrides/
 
 tee cinder/values_overrides/domain.yaml  <<EOF
@@ -100,7 +100,7 @@ manifests:
 EOF
 ```
 # Install cinder & watch
-```
+```bash
 helm upgrade --install cinder openstack-helm/cinder \
     --timeout=600s \
     --namespace=openstack \

@@ -1,6 +1,6 @@
 # Setup helm manifest
 
-```
+```bash
 mkdir -p /values_overrides/
 tee nova/values_overrides/domain.yaml  <<EOF
 endpoints:
@@ -143,7 +143,7 @@ EOF
 ```
 
 # Install nova & watch
-```
+```bash
 helm upgrade --install nova openstack-helm/nova \
     --timeout=600s \
     --namespace=openstack \

@@ -1,6 +1,6 @@
 # Setup helm manifest
 
-```
+```bash
 mkdir -p heat/values_overrides/
 tee heat/values_overrides/domain.yaml  <<EOF
 endpoints:
@@ -99,7 +99,7 @@ EOF
 ```
 
 # Install heat & watch
-```
+```bash
 helm upgrade --install heat openstack-helm/heat \
     --timeout=600s \
     --namespace=openstack \

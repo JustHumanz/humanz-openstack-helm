@@ -1,6 +1,6 @@
 # Setup helm manifest
 
-```
+```bash
 mkdir -p placement/values_overrides/
 tee placement/values_overrides/password.yaml  <<EOF
 endpoints:

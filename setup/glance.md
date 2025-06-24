@@ -1,7 +1,7 @@
 
 # Setup helm manifest
 
-```
+```bash
 mkdir -p glance/values_overrides/
 
 tee glance/values_overrides/domain.yaml  <<EOF
@@ -74,7 +74,7 @@ EOF
 
 # Install glance helm & watch
 
-```
+```bash
 helm upgrade --install glance openstack-helm/glance \
     --timeout=600s \
     --namespace=openstack \

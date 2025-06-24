@@ -1,6 +1,6 @@
 # Setup helm manifest
 
-```
+```bash
 mkdir -p ovn/values_overrides/
 tee ovn/values_overrides/ovn-conf.yaml  <<EOF
 conf:
@@ -17,7 +17,7 @@ volume:
 EOF
 ```
 # Install ovs
-```
+```bash
 helm upgrade --install ovn openstack-helm/ovn \
     --namespace=openstack \
     $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c ovn ${FEATURES} ubuntu_jammy values_overrides/ovn-conf)

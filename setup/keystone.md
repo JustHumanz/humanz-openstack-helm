@@ -1,6 +1,6 @@
 # Setup helm manifest
 
-```
+```bash
 mkdir -p keystone/values_overrides
 tee keystone/values_overrides/domain.yaml  <<EOF
 endpoints:
@@ -47,7 +47,7 @@ EOF
 ```
 
 # Install keystone & watch
-```
+```bash
 helm upgrade --install keystone openstack-helm/keystone \
     --timeout=600s \
     --namespace=openstack \

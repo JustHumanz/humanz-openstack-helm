@@ -1,6 +1,6 @@
 # Setup helm manifest
 
-```
+```bash
 mkdir -p libvirt/values_overrides/
 tee libvirt/values_overrides/libvirt-conf.yaml  <<EOF
 ---
@@ -19,7 +19,7 @@ EOF
 ```
 
 # Install libvirt
-```
+```bash
 helm upgrade --install libvirt openstack-helm/libvirt \
     --namespace=openstack \
     --set conf.ceph.enabled=true \

@@ -1,4 +1,5 @@
 ## Setup ceph
+```bash
 mkdir -p /opt/cephadm;cd /opt/cephadm
 curl --silent --remote-name --location https://github.com/ceph/ceph/raw/quincy/src/cephadm/cephadm
 chmod +x cephadm
@@ -8,8 +9,10 @@ cephadm install ceph-common
 mkdir -p /etc/ceph
 cephadm bootstrap --mon-ip 192.168.18.100
 sudo apparmor_parser -R /etc/apparmor.d/MongoDB_Compass
+```
 
 ### Create local disk
+```bash
 fallocate /var/lib/openstack-helm/osdX.img -l X0G
 losetup /dev/loopX0 /var/lib/openstack-helm/osdX.img
 ceph orch daemon add osd $HOSTNAME:/dev/loop10 raw
@@ -19,8 +22,10 @@ ceph config set global mon_allow_pool_delete true
 ceph osd pool create kube replicated_rule 32 32
 ceph osd pool application enable kube rbd
 ceph osd pool set kube size 1 --yes-i-really-mean-it
+```
 
 ### Create dummy interface
+```bash
 ip link add fip type dummy
 ip add add 172.16.18.1/24 dev fip
 ip link set fip up
@@ -28,8 +33,10 @@ ip link set fip up
 kubectl create ns openstack
 kubectl create ns ingress-nginx
 kubectl taint nodes -l 'node-role.kubernetes.io/control-plane' node-role.kubernetes.io/control-plane-
+```
 
 ### Import external ceph as rook 
+```bash
 curl -s https://raw.githubusercontent.com/rook/rook/release-1.17/deploy/examples/create-external-cluster-resources.py > create-external-cluster-resources.py
 python3 create-external-cluster-resources.py --rbd-data-pool-name kube --namespace rook-ceph-external --format bash
 >export NAMESPACE=rook-ceph-external
@@ -120,12 +127,14 @@ export FEATURES="${OPENSTACK_RELEASE} ubuntu_jammy"
 # Directory where values overrides are looked up or downloaded to.
 export OVERRIDES_DIR=$(pwd)/overrides
 cd $OVERRIDES_DIR
+```
 
 ## Setup Password
 go to [password](password.md)
 
 ## Setup Infra
 
+```bash
 helm install cert-manager jetstack/cert-manager --namespace cert-manager \
    --version v1.16.1 \
    --set installCRDs=true \
@@ -163,8 +172,10 @@ spec:
 EOF
 kubectl -n openstack apply -f cert-manager/self-cert.yaml
 kubectl get secret humanz-cloud-tls -n openstack -o jsonpath="{.data['tls\.crt']}" | base64 -d | sudo tee -a /etc/ssl/certs/ca-certificates.crt
+```
 
 ### Rabbitmq
+```bash
 mkdir -p rabbitmq/values_overrides/
 tee rabbitmq/values_overrides/password.yaml <<EOF
 endpoints:
@@ -201,6 +212,7 @@ helm upgrade --install mariadb openstack-helm/mariadb \
 helm upgrade --install memcached openstack-helm/memcached \
     --namespace=openstack \
     $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c memcached ${FEATURES})
+```
 
 ## Setup keystone
 - [Keystone](setup/keystone.md)
@@ -220,6 +232,7 @@ Exec it in order and if libvirt&nova pods isn't running or stuck at init you can
 Source: https://docs.openstack.org/openstack-helm/latest/install/openstack.html
 
 ---
+```yaml
 export clusterNamespace="rook-ceph-external"
 tee /tmp/ceph-mon.yaml <<EOF
 apiVersion: v1
@@ -258,3 +271,4 @@ endpoints:
   - addresses:
       - "192.168.18.100"
 EOF
+```

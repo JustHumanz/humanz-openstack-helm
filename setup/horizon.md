@@ -1,6 +1,6 @@
 # Setup helm manifest
 
-```
+```bash
 mkdir -p horizon/values_overrides/
 tee horizon/values_overrides/domain.yaml  <<EOF
 endpoints:
@@ -59,7 +59,7 @@ EOF
 ```
 # Install Horizon & watch
 
-```
+```bash
 helm upgrade --install horizon openstack-helm/horizon \
     --timeout=600s \
     --namespace=openstack \

@@ -1,6 +1,6 @@
 # Setup helm manifest
 
-```
+```bash
 mkdir -p neutron/values_overrides
 tee neutron/values_overrides/domain.yaml  <<EOF
 endpoints:
@@ -93,7 +93,7 @@ EOF
 
 # Install neutron & watch
 
-```
+```bash
 helm upgrade --install neutron openstack-helm/neutron \
     --namespace=openstack \
     $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c neutron ${FEATURES} values_overrides/domain values_overrides/password values_overrides/neutron-conf)

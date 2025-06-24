@@ -1,6 +1,6 @@
 # Setup openvswitch
 
-```
+```bash
 helm upgrade --install openvswitch openstack-helm/openvswitch \
     --namespace=openstack \
     --set conf.openvswitch_db_server.ptcp_port=6640 \
