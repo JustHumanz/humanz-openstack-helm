@@ -58,7 +58,7 @@ jobs:
       # Drop kubeconfig
       - name: Create kubeconfig
         run: |
-          mkdir ${HOME}/.kube
+          mkdir -p ${HOME}/.kube
           echo ${{ secrets.KUBE_CONFIG }} | base64 --decode > ${HOME}/.kube/config
 
       # Add helm repo & Install plugin
