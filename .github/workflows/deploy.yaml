@@ -74,9 +74,7 @@ jobs:
           gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output nova/values_overrides/password.yaml nova/values_overrides/password.yaml.enc
 
       # Run helm upgrade
-      - name: Update new config
-        env:
-          FEATURES: ${{ env.OPENSTACK_UBUNTU_VERSION }}      
+      - name: Update new config      
         run: |
           helm upgrade --install nova openstack-helm/nova \
               --timeout=600s \
@@ -84,4 +82,4 @@ jobs:
               --set bootstrap.wait_for_computes.enabled=true \
               --set conf.ceph.enabled=true \
               --set volume.class_name=ceph-rbd \
-              $(helm osh get-values-overrides -c nova ${FEATURES} values_overrides/domain values_overrides/password values_overrides/nova-conf)
+              $(helm osh get-values-overrides -c nova ${{ env.OPENSTACK_UBUNTU_VERSION }} values_overrides/domain values_overrides/password values_overrides/nova-conf)
