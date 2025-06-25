@@ -1,3 +1,7 @@
+jobs:
+  volume_usage_audit:
+    cron: "55 * * * *"
+
 pod:
   security_context:
     cinder_volume:
