@@ -99,7 +99,7 @@ jobs:
               --timeout=600s \
               --namespace=openstack \
               --set volume.class_name=ceph-rbd \
-              $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c keystone ${FEATURES} values_overrides/domain values_overrides/password values_overrides/keystone-conf)
+              $(helm osh get-values-overrides -c keystone ${FEATURES} values_overrides/domain values_overrides/password values_overrides/keystone-conf)
 
       # Run helm upgrade
       - name: Update heat config
@@ -109,7 +109,7 @@ jobs:
               --timeout=600s \
               --namespace=openstack \
               --set volume.class_name=ceph-rbd \
-              $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c heat ${FEATURES} values_overrides/domain values_overrides/password values_overrides/heat-conf)
+              $(helm osh get-values-overrides -c heat ${FEATURES} values_overrides/domain values_overrides/password values_overrides/heat-conf)
 
       # Run helm upgrade
       - name: Update glance config
@@ -120,7 +120,7 @@ jobs:
               --namespace=openstack \
               --set volume.class_name=ceph-rbd \
               --set volume.size=10Gi \
-              $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c glance ${FEATURES} values_overrides/domain values_overrides/password values_overrides/glance-conf)
+              $(helm osh get-values-overrides -c glance ${FEATURES} values_overrides/domain values_overrides/password values_overrides/glance-conf)
 
       # Run helm upgrade
       - name: Update cinder config
@@ -130,7 +130,7 @@ jobs:
               --timeout=600s \
               --namespace=openstack \
               --set volume.class_name=ceph-rbd \
-              $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c cinder ${FEATURES} values_overrides/domain values_overrides/password values_overrides/cinder-conf)
+              $(helm osh get-values-overrides -c cinder ${FEATURES} values_overrides/domain values_overrides/password values_overrides/cinder-conf)
 
       # Run helm upgrade
       - name: Update placement config
@@ -140,7 +140,7 @@ jobs:
               --timeout=600s \
               --namespace=openstack \
               --set volume.class_name=ceph-rbd \
-              $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c placement ${FEATURES} values_overrides/password values_overrides/placement-conf)
+              $(helm osh get-values-overrides -c placement ${FEATURES} values_overrides/password values_overrides/placement-conf)
 
       # Run helm upgrade
       - name: Update neutron config
@@ -148,4 +148,4 @@ jobs:
         run: |
           helm upgrade --install neutron openstack-helm/neutron \
               --namespace=openstack \
-              $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c neutron ${FEATURES} values_overrides/domain values_overrides/password values_overrides/neutron-conf)
+              $(helm osh get-values-overrides -c neutron ${FEATURES} values_overrides/domain values_overrides/password values_overrides/neutron-conf)
