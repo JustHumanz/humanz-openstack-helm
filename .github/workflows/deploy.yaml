@@ -149,3 +149,14 @@ jobs:
           helm upgrade --install neutron openstack-helm/neutron \
               --namespace=openstack \
               $(helm osh get-values-overrides -c neutron ${FEATURES} values_overrides/domain values_overrides/password values_overrides/neutron-conf)
+
+      # Run helm upgrade
+      - name: Update horizon config
+        if: contains(github.event.pull_request.labels.*.name, 'horizon')
+        run: |
+          helm upgrade --install horizon openstack-helm/horizon \
+              --timeout=600s \
+              --namespace=openstack \
+              --set volume.class_name=ceph-rbd \
+              --set volume.size=10Gi \
+              $(helm osh get-values-overrides -c horizon ${FEATURES} values_overrides/domain values_overrides/password values_overrides/horizon-conf)
