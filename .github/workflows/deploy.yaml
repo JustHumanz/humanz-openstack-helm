@@ -152,7 +152,7 @@ jobs:
 
       # Run helm upgrade
       - name: Update horizon config
-        if: contains(github.event.pull_request.labels.*.name, 'neutron')
+        if: contains(github.event.pull_request.labels.*.name, 'horizon')
         run: |
           helm upgrade --install horizon openstack-helm/horizon \
               --timeout=600s \
