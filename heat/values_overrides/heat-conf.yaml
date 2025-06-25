@@ -37,6 +37,10 @@ endpoints:
       api:
         default: 8003
         public: 443      
+jobs:
+  engine_cleaner:
+    cron: "*/45 * * * *"
+    
 manifests:
   ingress_api: false
   ingress_cfn: false
