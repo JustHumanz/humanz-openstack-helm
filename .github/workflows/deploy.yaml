@@ -21,7 +21,6 @@ env:
 jobs:
   # This workflow contains a single job called "build"
   build:
-    if: contains(github.event.pull_request.labels.*.name, 'nova')
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -72,12 +71,17 @@ jobs:
           /usr/local/bin/helm plugin install https://opendev.org/openstack/openstack-helm-plugin
 
       # Get password config
-      - name: Decrypt GPG pasword.yaml
+      - name: Decrypt all GPG pasword.yaml
         run: |
-          gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output nova/values_overrides/password.yaml nova/values_overrides/password.yaml.enc
+          for i in $(find . -name password.yaml.enc);
+          do
+              passfile=$(echo $i | sed 's/.enc//g')
+              gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output $passfile $i
+          done        
 
       # Run helm upgrade
-      - name: Update new config      
+      - name: Update nova config
+        if: contains(github.event.pull_request.labels.*.name, 'nova')
         run: |
           helm upgrade --install nova openstack-helm/nova \
               --timeout=600s \
@@ -86,3 +90,62 @@ jobs:
               --set conf.ceph.enabled=true \
               --set volume.class_name=ceph-rbd \
               $(helm osh get-values-overrides -c nova ${FEATURES} values_overrides/domain values_overrides/password values_overrides/nova-conf)
+
+      # Run helm upgrade
+      - name: Update keystone config
+        if: contains(github.event.pull_request.labels.*.name, 'keystone')
+        run: |
+          helm upgrade --install keystone openstack-helm/keystone \
+              --timeout=600s \
+              --namespace=openstack \
+              --set volume.class_name=ceph-rbd \
+              $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c keystone ${FEATURES} values_overrides/domain values_overrides/password values_overrides/keystone-conf)
+
+      # Run helm upgrade
+      - name: Update heat config
+        if: contains(github.event.pull_request.labels.*.name, 'heat')
+        run: |
+          helm upgrade --install heat openstack-helm/heat \
+              --timeout=600s \
+              --namespace=openstack \
+              --set volume.class_name=ceph-rbd \
+              $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c heat ${FEATURES} values_overrides/domain values_overrides/password values_overrides/heat-conf)
+
+      # Run helm upgrade
+      - name: Update glance config
+        if: contains(github.event.pull_request.labels.*.name, 'glance')
+        run: |
+          helm upgrade --install glance openstack-helm/glance \
+              --timeout=600s \
+              --namespace=openstack \
+              --set volume.class_name=ceph-rbd \
+              --set volume.size=10Gi \
+              $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c glance ${FEATURES} values_overrides/domain values_overrides/password values_overrides/glance-conf)
+
+      # Run helm upgrade
+      - name: Update cinder config
+        if: contains(github.event.pull_request.labels.*.name, 'cinder')
+        run: |
+          helm upgrade --install cinder openstack-helm/cinder \
+              --timeout=600s \
+              --namespace=openstack \
+              --set volume.class_name=ceph-rbd \
+              $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c cinder ${FEATURES} values_overrides/domain values_overrides/password values_overrides/cinder-conf)
+
+      # Run helm upgrade
+      - name: Update placement config
+        if: contains(github.event.pull_request.labels.*.name, 'placement')
+        run: |
+          helm upgrade --install placement openstack-helm/placement \
+              --timeout=600s \
+              --namespace=openstack \
+              --set volume.class_name=ceph-rbd \
+              $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c placement ${FEATURES} values_overrides/password values_overrides/placement-conf)
+
+      # Run helm upgrade
+      - name: Update neutron config
+        if: contains(github.event.pull_request.labels.*.name, 'neutron')
+        run: |
+          helm upgrade --install neutron openstack-helm/neutron \
+              --namespace=openstack \
+              $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c neutron ${FEATURES} values_overrides/domain values_overrides/password values_overrides/neutron-conf)
