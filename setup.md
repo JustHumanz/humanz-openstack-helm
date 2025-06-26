@@ -67,6 +67,20 @@ helm install --create-namespace --namespace $operatorNamespace rook-ceph rook-re
 helm install --create-namespace --namespace $clusterNamespace rook-ceph-cluster \
 --set operatorNamespace=$operatorNamespace rook-release/rook-ceph-cluster -f values-external.yaml
 
+echo $(ceph auth ls | grep admin -A 3 | grep key: | sed 's/key: //' | tr -d '[:space:]') | base64 #Save the output
+printf client.admin | base64 #Save the output
+kubectl --namespace openstack edit secret rook-ceph-mon
+```yaml
+apiVersion: v1
+data:
+  admin-secret: XXXX
+  ceph-secret: OUTPUT FROM CEPH AUTH
+  ceph-username: OUTPUT FROM PRINTF
+  cluster-name: XXXX
+  fsid: XXXX
+  mon-secret: XXXX
+```
+
 tee /tmp/ceph.conf <<EOF
 [global]
 cephx = true
