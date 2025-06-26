@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: swift
+  namespace: openstack
+spec:
+  tls:
+    - hosts:
+        - "swift.ctl1-humanz.cloud"
+      secretName: humanz-cloud-tls
+  ingressClassName: nginx
+  rules:
+  - host: swift.ctl1-humanz.cloud
+    http:
+      paths:
+      - backend:
+          service:
+            name: rook-ceph-rgw-swift
+            port:
+              number: 80
+        path: /
+        pathType: Prefix

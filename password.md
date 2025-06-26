@@ -68,6 +68,10 @@ export osh_rabbitmq_neutron_password=$(pwgen -c 12 1)
 export osh_mariadb_horizon_password=$(pwgen -c 12 1)
 export osh_rabbitmq_horizon_password=$(pwgen -c 12 1)
 ```
+### Swift
+```bash
+export osh_os_swift_user_password=$(pwgen -c 12 1)
+``` 
 
 ## Reuse Password
 
