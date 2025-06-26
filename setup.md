@@ -38,8 +38,8 @@ kubectl taint nodes -l 'node-role.kubernetes.io/control-plane' node-role.kuberne
 ### Import external ceph as rook 
 ```bash
 curl -s https://raw.githubusercontent.com/rook/rook/release-1.17/deploy/examples/create-external-cluster-resources.py > create-external-cluster-resources.py
-python3 create-external-cluster-resources.py --rbd-data-pool-name kube --namespace rook-ceph-external --format bash
->export NAMESPACE=rook-ceph-external
+python3 create-external-cluster-resources.py --rbd-data-pool-name kube --namespace openstack --format bash
+>export NAMESPACE=openstack
 >export ROOK_EXTERNAL_FSID=XXXXXXXXX
 >export ROOK_EXTERNAL_USERNAME=client.healthchecker
 >export ROOK_EXTERNAL_CEPH_MON_DATA=pve1=XXXXXXXXX
@@ -60,12 +60,26 @@ curl -s https://raw.githubusercontent.com/rook/rook/release-1.17/deploy/examples
 ./import-external-cluster.sh
 
 export operatorNamespace="rook-ceph"
-export clusterNamespace="rook-ceph-external"
+export clusterNamespace="openstack"
 curl -s https://raw.githubusercontent.com/rook/rook/release-1.17/deploy/charts/rook-ceph/values.yaml > values.yaml
 curl -s https://raw.githubusercontent.com/rook/rook/release-1.17/deploy/charts/rook-ceph-cluster/values-external.yaml > values-external.yaml
 helm install --create-namespace --namespace $operatorNamespace rook-ceph rook-release/rook-ceph -f values.yaml
 helm install --create-namespace --namespace $clusterNamespace rook-ceph-cluster \
 --set operatorNamespace=$operatorNamespace rook-release/rook-ceph-cluster -f values-external.yaml
+
+echo $(ceph auth ls | grep admin -A 3 | grep key: | sed 's/key: //' | tr -d '[:space:]') | base64 #Save the output
+printf client.admin | base64 #Save the output
+kubectl --namespace openstack edit secret rook-ceph-mon
+```yaml
+apiVersion: v1
+data:
+  admin-secret: XXXX
+  ceph-secret: OUTPUT FROM CEPH AUTH
+  ceph-username: OUTPUT FROM PRINTF
+  cluster-name: XXXX
+  fsid: XXXX
+  mon-secret: XXXX
+```
 
 tee /tmp/ceph.conf <<EOF
 [global]
@@ -233,7 +247,7 @@ Source: https://docs.openstack.org/openstack-helm/latest/install/openstack.html
 
 ---
 ```yaml
-export clusterNamespace="rook-ceph-external"
+export clusterNamespace="openstack"
 tee /tmp/ceph-mon.yaml <<EOF
 apiVersion: v1
 kind: Service
