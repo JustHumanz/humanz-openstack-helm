@@ -29,10 +29,12 @@ ceph osd pool set kube size 1 --yes-i-really-mean-it
 ip link add fip type dummy
 ip add add 172.16.18.1/24 dev fip
 ip link set fip up
+```
 
+### Create NS
+```bash
 kubectl create ns openstack
 kubectl create ns ingress-nginx
-kubectl taint nodes -l 'node-role.kubernetes.io/control-plane' node-role.kubernetes.io/control-plane-
 ```
 
 ### Import external ceph as rook 
@@ -80,7 +82,9 @@ data:
   fsid: XXXX
   mon-secret: XXXX
 ```
+### Import ceph conf
 
+```bash
 tee /tmp/ceph.conf <<EOF
 [global]
 cephx = true
@@ -108,19 +112,39 @@ EOF
 kubectl create configmap ceph-etc -n openstack --from-file=/tmp/ceph.conf
 echo $(ceph auth ls | grep admin -A 3 | grep key: | sed 's/key: //' | tr -d '[:space:]') > /tmp/key
 kubectl create secret generic pvc-ceph-client-key -n openstack --from-file=/tmp/key
+```
 
+### Add openstack helm repo
+```bash
 helm repo add openstack-helm https://tarballs.opendev.org/openstack/openstack-helm
 helm plugin install https://opendev.org/openstack/openstack-helm-plugin
+```
+### Create Workdir & define the openstack version
 
+```bash
 mkdir -p ~/osh/overrides
 cd ~/osh
 
+export OPENSTACK_RELEASE=2023.2
+# Features enabled for the deployment. This is used to look up values overrides.
+export FEATURES="${OPENSTACK_RELEASE} ubuntu_jammy"
+# Directory where values overrides are looked up or downloaded to.
+export OVERRIDES_DIR=$(pwd)/overrides
+cd $OVERRIDES_DIR
+
+```
+
+### Labeling all nodes
+```bash
 kubectl label --overwrite nodes --all openstack-control-plane=enabled
 kubectl label --overwrite nodes --all openstack-compute-node=enabled
 kubectl label --overwrite nodes --all openvswitch=enabled
 kubectl label --overwrite nodes --all openstack-network-node=enabled
+kubectl taint nodes -l 'node-role.kubernetes.io/control-plane' node-role.kubernetes.io/control-plane-
+```
 
-
+### Install nginx ingress
+```bash
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm upgrade --install ingress-nginx oci://ghcr.io/nginx/charts/nginx-ingress \
     --version 2.1.0 \
@@ -134,15 +158,7 @@ helm upgrade --install ingress-nginx oci://ghcr.io/nginx/charts/nginx-ingress \
     --set controller.labels.app=ingress-api \
     --set controller.service.create="true" \
     --set controller.hostNetwork=true
-
-export OPENSTACK_RELEASE=2023.2
-# Features enabled for the deployment. This is used to look up values overrides.
-export FEATURES="${OPENSTACK_RELEASE} ubuntu_jammy"
-# Directory where values overrides are looked up or downloaded to.
-export OVERRIDES_DIR=$(pwd)/overrides
-cd $OVERRIDES_DIR
 ```
-
 ## Setup Password
 go to [password](password.md)
 
