@@ -15,7 +15,15 @@ bootstrap:
         id: null
         min_disk: 3
         image_type: qcow2
-        container_format: bare      
+        container_format: bare
+      ubuntu_miniaml_24:
+        name: "Ubuntu noble Minimal"
+        source_url: "https://cloud-images.ubuntu.com/minimal/releases/noble/release/"
+        image_file: "ubuntu-24.04-minimal-cloudimg-amd64.img"
+        id: null
+        min_disk: 3
+        image_type: qcow2
+        container_format: bare
 endpoints:
   identity:
     hosts:
