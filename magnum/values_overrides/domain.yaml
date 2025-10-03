@@ -1,0 +1,5 @@
+endpoints:
+  container_infra:
+    host_fqdn_override:
+      public:
+        host: "magnum.ctl1-humanz.cloud"

@@ -1,0 +1,47 @@
+conf:
+  magnum:
+    api:
+      workers: 1
+    capi_client:
+      ca_file: /etc/ssl/certs/ca-certificates.crt
+      endpoint_type: internalURL      
+    cluster_template:
+      kubernetes_allowed_network_drivers: calico
+      kubernetes_default_network_driver: calico
+    conductor:
+      workers: 1
+    database:
+      connection_recycle_time: 10
+      max_pool_size: 1
+    drivers:
+      verify_ca: false
+    keystone_auth:
+      auth_url: http://keystone-api.openstack.svc.cluster.local:5000/v3
+      username: "magnum"
+      insecure: true
+    keystone_authtoken:
+      insecure: true
+endpoints:
+  identity:
+    hosts:
+      default: keystone-api
+      internal: keystone-api
+    scheme:
+      public: https
+    port:
+      api:
+        default: 5000
+        public: 443
+  container_infra:
+    hosts:
+      default: magnum-api
+    scheme:
+      public: https
+    port:
+      api:
+        default: 9511
+        public: 443
+
+manifests:
+  ingress_api: false
+  service_ingress_api: false
