@@ -1,0 +1,85 @@
+endpoints:
+  load_balancer:
+    name: octavia
+    hosts:
+      default: octavia-api
+    scheme:
+      public: https
+    port:
+      api:
+        public: 443
+
+pod:
+  replicas:
+    api: 1
+    worker: 1
+    housekeeping: 1
+
+  security_context:
+    octavia_worker:
+      container:
+        octavia_worker:
+          capabilities:
+            add:
+              - NET_ADMIN
+              - NET_RAW
+    octavia_health_manager:
+      container:
+        octavia_health_manager:
+          capabilities:
+            add:
+              - NET_ADMIN
+              - NET_RAW
+
+conf:
+  octavia_api_uwsgi:
+    uwsgi:
+      # in 2025.2 the wsgi script was removed
+      add-header: "Connection: close"
+      buffer-size: 65535
+      die-on-term: true
+      enable-threads: true
+      exit-on-reload: false
+      hook-master-start: "unix_signal:15 gracefully_kill_them_all"
+      http-socket: 0.0.0.0:9876
+      lazy-apps: true
+      log-x-forwarded-for: true
+      master: true
+      processes: 2
+      procname-prefix-spaced: "octavia-api:"
+      route-user-agent: "^kube-probe.* donotlog:"
+      thunder-lock: true
+      worker-reload-mercy: 80
+      wsgi-file: /var/lib/openstack/bin/octavia-wsgi
+
+  octavia:
+    api_settings:
+      default_provider_driver: amphorav2
+      enabled_provider_drivers: amphorav2:'The v2 amphora driver.',amphora:'The Octavia Amphora driver.',octavia:'Deprecated name of Amphora driver.' 
+      healthcheck_enabled: false 
+    controller_worker:
+      amp_image_owner_id: 7064650b0136466796912d77892912fb
+      amp_secgroup_list: bee80d86-0387-4b68-b64f-4a838eec3806
+      amp_flavor_id: e9ad6c38-c3bd-4f0d-a17a-3a5611cf007c
+      amp_boot_network_list: aa7894d1-bf43-4299-8878-b7711f233c7a
+      amp_ssh_key_name: octavia-key
+      amp_image_tag: octavia-amphora-image
+      network_driver: allowed_address_pairs_driver
+      compute_driver: compute_nova_driver
+      amphora_driver: amphora_haproxy_rest_driver
+      workers: 4
+    task_flow:
+      jobboard_enabled: false
+    health_manager:
+      controller_ip_port_list: "10.0.1.72:5555"
+    cinder:
+      endpoint_type: internalURL
+    glance:
+      endpoint_type: internalURL
+    neutron:
+      endpoint_type: internalURL
+    nova:
+      endpoint_type: internalURL  
+manifests:
+  ingress_api: false
+  service_ingress_api: false
