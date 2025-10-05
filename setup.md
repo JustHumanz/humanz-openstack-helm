@@ -127,7 +127,7 @@ cd ~/osh
 
 export OPENSTACK_RELEASE=2023.2
 # Features enabled for the deployment. This is used to look up values overrides.
-export FEATURES="${OPENSTACK_RELEASE} ubuntu_jammy"
+export FEATURES="${OPENSTACK_RELEASE}-ubuntu_jammy"
 # Directory where values overrides are looked up or downloaded to.
 export OVERRIDES_DIR=$(pwd)/overrides
 cd $OVERRIDES_DIR
