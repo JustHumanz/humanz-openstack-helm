@@ -1,0 +1,5 @@
+endpoints:
+  load_balancer:
+    host_fqdn_override:
+      public:
+        host: "load-balancer.ctl1-humanz.cloud"
