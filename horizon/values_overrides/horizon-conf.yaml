@@ -13,7 +13,7 @@ conf:
         # Use "True" and "False" as Titlecase strings with quotes, boolean
         # values will not work
         horizon_secret_key: dcfed3a7-d301-405a-827a-28a4b33ef4d1
-        debug: "True"
+        debug: "False"
         use_ssl: "True"
         endpoint_type: "internalURL"
         keystone_multidomain_support: "True"
@@ -24,7 +24,11 @@ conf:
         csrf_cookie_httponly: "True"
         csrf_trusted_origins: ["https://*.humanz.moe","https://*.kano2525.dev","https://*.ctl1-humanz.cloud"]
         enforce_password_check: "True"
-        
+
+    extra_panels:
+      - heat_dashboard
+      - octavia_dashboard
+
 endpoints:
   identity:
     hosts:

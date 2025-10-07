@@ -10,12 +10,76 @@ endpoints:
         public: 443
 
 pod:
+  probes:
+    api:
+      octavia-api:
+        liveness:
+          enabled: false
+        readiness:
+          enabled: false
   replicas:
     api: 1
     worker: 1
     housekeeping: 1
+  mounts:
+    octavia_api:
+      octavia_api:
+        volumeMounts:
+          - name: octavia-server-certs
+            mountPath: /etc/octavia/certs/server
+          - name: octavia-client-certs
+            mountPath: /etc/octavia/certs/client
+        volumes:
+          - name: octavia-server-certs
+            secret:
+              secretName: octavia-server-tls
+          - name: octavia-client-certs
+            secret:
+              secretName: octavia-client-tls
+    octavia_worker:
+      octavia_worker:
+        volumeMounts:
+          - name: octavia-server-certs
+            mountPath: /etc/octavia/certs/server
+          - name: octavia-client-certs
+            mountPath: /etc/octavia/certs/client
+        volumes:
+          - name: octavia-server-certs
+            secret:
+              secretName: octavia-server-tls
+          - name: octavia-client-certs
+            secret:
+              secretName: octavia-client-tls
+    octavia_housekeeping:
+      octavia_housekeeping:
+        volumeMounts:
+          - name: octavia-server-certs
+            mountPath: /etc/octavia/certs/server
+          - name: octavia-client-certs
+            mountPath: /etc/octavia/certs/client
+        volumes:
+          - name: octavia-server-certs
+            secret:
+              secretName: octavia-server-tls
+          - name: octavia-client-certs
+            secret:
+              secretName: octavia-client-tls
+    octavia_health_manager:
+      octavia_health_manager:
+        volumeMounts:
+          - name: octavia-server-certs
+            mountPath: /etc/octavia/certs/server
+          - name: octavia-client-certs
+            mountPath: /etc/octavia/certs/client
+        volumes:
+          - name: octavia-server-certs
+            secret:
+              secretName: octavia-server-tls
+          - name: octavia-client-certs
+            secret:
+              secretName: octavia-client-tls
 
-  security_context:
+security_context:
     octavia_worker:
       container:
         octavia_worker:
@@ -56,7 +120,15 @@ conf:
     api_settings:
       default_provider_driver: amphorav2
       enabled_provider_drivers: amphorav2:'The v2 amphora driver.',amphora:'The Octavia Amphora driver.',octavia:'Deprecated name of Amphora driver.' 
-      healthcheck_enabled: false 
+      healthcheck_enabled: false
+    certificates:
+      ca_certificate: /etc/octavia/certs/server/ca.crt
+      ca_private_key: /etc/octavia/certs/server/tls.key
+      ca_private_key_passphrase: null
+      endpoint_type: internalURL
+    haproxy_amphora:
+      client_cert: /etc/octavia/certs/client/tls-combined.pem
+      server_ca: /etc/octavia/certs/server/ca.crt
     controller_worker:
       amp_image_owner_id: 7064650b0136466796912d77892912fb
       amp_secgroup_list: bee80d86-0387-4b68-b64f-4a838eec3806
