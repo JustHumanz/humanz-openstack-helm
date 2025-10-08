@@ -98,24 +98,7 @@ security_context:
 conf:
   octavia_api_uwsgi:
     uwsgi:
-      # in 2025.2 the wsgi script was removed
-      add-header: "Connection: close"
-      buffer-size: 65535
-      die-on-term: true
-      enable-threads: true
-      exit-on-reload: false
-      hook-master-start: "unix_signal:15 gracefully_kill_them_all"
-      http-socket: 0.0.0.0:9876
-      lazy-apps: true
-      log-x-forwarded-for: true
-      master: true
-      processes: 2
-      procname-prefix-spaced: "octavia-api:"
-      route-user-agent: "^kube-probe.* donotlog:"
-      thunder-lock: true
-      worker-reload-mercy: 80
       wsgi-file: /var/lib/openstack/bin/octavia-wsgi
-
   octavia:
     DEFAULT:
       debug: "True"
@@ -154,7 +137,8 @@ conf:
     neutron:
       endpoint_type: internalURL
     nova:
-      endpoint_type: internalURL  
+      endpoint_type: internalURL
+
 manifests:
   ingress_api: false
   service_ingress_api: false
