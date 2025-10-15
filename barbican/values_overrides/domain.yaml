@@ -1,0 +1,5 @@
+endpoints:
+  key_manager:
+    host_fqdn_override:
+      public:
+        host: "barbican.ctl1-humanz.cloud"
