@@ -25,59 +25,59 @@ pod:
     octavia_api:
       octavia_api:
         volumeMounts:
-          - name: octavia-server-certs
+          - name: octavia-server-ca
             mountPath: /etc/octavia/certs/server
           - name: octavia-client-certs
             mountPath: /etc/octavia/certs/client
         volumes:
-          - name: octavia-server-certs
+          - name: octavia-server-ca
             secret:
-              secretName: octavia-server-tls
+              secretName: octavia-server-ca
           - name: octavia-client-certs
             secret:
-              secretName: octavia-client-tls
+              secretName: octavia-client-certs
     octavia_worker:
       octavia_worker:
         volumeMounts:
-          - name: octavia-server-certs
+          - name: octavia-server-ca
             mountPath: /etc/octavia/certs/server
           - name: octavia-client-certs
             mountPath: /etc/octavia/certs/client
         volumes:
-          - name: octavia-server-certs
+          - name: octavia-server-ca
             secret:
-              secretName: octavia-server-tls
+              secretName: octavia-server-ca
           - name: octavia-client-certs
             secret:
-              secretName: octavia-client-tls
+              secretName: octavia-client-certs
     octavia_housekeeping:
       octavia_housekeeping:
         volumeMounts:
-          - name: octavia-server-certs
+          - name: octavia-server-ca
             mountPath: /etc/octavia/certs/server
           - name: octavia-client-certs
             mountPath: /etc/octavia/certs/client
         volumes:
-          - name: octavia-server-certs
+          - name: octavia-server-ca
             secret:
-              secretName: octavia-server-tls
+              secretName: octavia-server-ca
           - name: octavia-client-certs
             secret:
-              secretName: octavia-client-tls
+              secretName: octavia-client-certs
     octavia_health_manager:
       octavia_health_manager:
         volumeMounts:
-          - name: octavia-server-certs
+          - name: octavia-server-ca
             mountPath: /etc/octavia/certs/server
           - name: octavia-client-certs
             mountPath: /etc/octavia/certs/client
         volumes:
-          - name: octavia-server-certs
+          - name: octavia-server-ca
             secret:
-              secretName: octavia-server-tls
+              secretName: octavia-server-ca
           - name: octavia-client-certs
             secret:
-              secretName: octavia-client-tls
+              secretName: octavia-client-certs
 
 security_context:
     octavia_worker:
@@ -98,25 +98,10 @@ security_context:
 conf:
   octavia_api_uwsgi:
     uwsgi:
-      # in 2025.2 the wsgi script was removed
-      add-header: "Connection: close"
-      buffer-size: 65535
-      die-on-term: true
-      enable-threads: true
-      exit-on-reload: false
-      hook-master-start: "unix_signal:15 gracefully_kill_them_all"
-      http-socket: 0.0.0.0:9876
-      lazy-apps: true
-      log-x-forwarded-for: true
-      master: true
-      processes: 2
-      procname-prefix-spaced: "octavia-api:"
-      route-user-agent: "^kube-probe.* donotlog:"
-      thunder-lock: true
-      worker-reload-mercy: 80
       wsgi-file: /var/lib/openstack/bin/octavia-wsgi
-
   octavia:
+    DEFAULT:
+      debug: "True"
     api_settings:
       default_provider_driver: amphorav2
       enabled_provider_drivers: amphorav2:'The v2 amphora driver.',amphora:'The Octavia Amphora driver.',octavia:'Deprecated name of Amphora driver.' 
@@ -130,20 +115,21 @@ conf:
       client_cert: /etc/octavia/certs/client/tls-combined.pem
       server_ca: /etc/octavia/certs/server/ca.crt
     controller_worker:
-      amp_image_owner_id: 7064650b0136466796912d77892912fb
-      amp_secgroup_list: bee80d86-0387-4b68-b64f-4a838eec3806
-      amp_flavor_id: e9ad6c38-c3bd-4f0d-a17a-3a5611cf007c
-      amp_boot_network_list: aa7894d1-bf43-4299-8878-b7711f233c7a
+      amp_image_owner_id: 619e0de9e977480881e89f6d5d26a818
+      amp_secgroup_list: 834fdc5a-eea5-4fb5-ac0e-1773723ec0c4
+      amp_flavor_id: 2e69cc23-923d-47d8-85a9-78f3503a443d
+      amp_boot_network_list: 2a8c668d-5dc0-48b4-9929-b99c58f29bf5
       amp_ssh_key_name: octavia-key
       amp_image_tag: octavia-amphora-image
       network_driver: allowed_address_pairs_driver
       compute_driver: compute_nova_driver
       amphora_driver: amphora_haproxy_rest_driver
+      client_ca: /etc/octavia/certs/client/ca.crt
       workers: 4
     task_flow:
       jobboard_enabled: false
     health_manager:
-      controller_ip_port_list: "10.0.1.72:5555"
+      controller_ip_port_list: "192.168.18.100:5555"
     cinder:
       endpoint_type: internalURL
     glance:
@@ -151,7 +137,8 @@ conf:
     neutron:
       endpoint_type: internalURL
     nova:
-      endpoint_type: internalURL  
+      endpoint_type: internalURL
+
 manifests:
   ingress_api: false
   service_ingress_api: false
