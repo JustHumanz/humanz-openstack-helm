@@ -1,46 +1,71 @@
 conf:
   magnum:
+    DEFAULT:
+      log_config_append: 
+      debug: "True"
     api:
       workers: 1
-    capi_client:
-      ca_file: /etc/ssl/certs/ca-certificates.crt
-      endpoint_type: internalURL      
     cluster_template:
       kubernetes_allowed_network_drivers: calico
       kubernetes_default_network_driver: calico
-    conductor:
-      workers: 1
-    database:
-      connection_recycle_time: 10
-      max_pool_size: 1
+    capi_client:
+      endpoint_type: publicURL
+      insecure: "True"
     drivers:
-      verify_ca: false
+      verify_ca: "False"
+    barbican_client:
+      endpoint_type: internalURL
+      region_name: RegionOne
+    cinder_client:
+      endpoint_type: internalURL
+      region_name: RegionOne
+    glance_client:
+      endpoint_type: internalURL
+      region_name: RegionOne
+    heat_client:
+      endpoint_type: internalURL
+      region_name: RegionOne
+    manila_client:
+      endpoint_type: internalURL
+      region_name: RegionOne
+    magnum_client:
+      region_name: RegionOne      
+    neutron_client:
+      endpoint_type: internalURL
+      region_name: RegionOne
+    nova_client:
+      api_version: 2.15
+      endpoint_type: internalURL
+      region_name: RegionOne
+    octavia_client:
+      endpoint_type: internalURL
+      region_name: RegionOne
     keystone_auth:
       auth_url: http://keystone-api.openstack.svc.cluster.local:5000/v3
+      user_domain_name: service
       username: "magnum"
-      insecure: true
+      insecure: "True"
     keystone_authtoken:
-      insecure: true
+      interface: internalURL
+      insecure: "True"
+      region_name: RegionOne
+      www_authenticate_uri: http://keystone-api.openstack.svc.cluster.local:5000/v3
+    trust:
+      trustee_keystone_interface: public
+      trustee_keystone_region_name: RegionOne
+
 endpoints:
-  identity:
-    hosts:
-      default: keystone-api
-      internal: keystone-api
-    scheme:
-      public: https
-    port:
-      api:
-        default: 5000
-        public: 443
   container_infra:
-    hosts:
-      default: magnum-api
     scheme:
-      public: https
+      public: https  
     port:
       api:
-        default: 9511
         public: 443
+
+pod:
+  replicas:
+    api: 1
+    conductor: 1
 
 manifests:
   ingress_api: false
