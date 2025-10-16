@@ -1,5 +1,5 @@
 endpoints:
-  image:
+  volumev3:
     host_fqdn_override:
       public:
         host: "cinder.ctl1-humanz.cloud"
