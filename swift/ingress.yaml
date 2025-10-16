@@ -17,7 +17,7 @@ spec:
       paths:
       - backend:
           service:
-            name: rook-ceph-rgw-swift
+            name: rook-ceph-rgw-swift-rgw
             port:
               number: 80
         path: /

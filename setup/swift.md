@@ -28,7 +28,7 @@ tee swift/rook-rgw.yaml <<EOF
 apiVersion: ceph.rook.io/v1
 kind: CephObjectStore
 metadata:
-  name: swift
+  name: swift-rgw
   namespace: openstack
 spec:
   metadataPool:
