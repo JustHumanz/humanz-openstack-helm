@@ -73,6 +73,15 @@ export osh_rabbitmq_horizon_password=$(pwgen -c 12 1)
 export osh_os_swift_user_password=$(pwgen -c 12 1)
 ``` 
 
+### Magnum
+```bash
+export osh_os_magnum_user_password=$(pwgen -c 12 1)
+export osh_os_magnum_stack_user_password=$(pwgen -c 12 1)
+export osh_mariadb_magnum_password=$(pwgen -c 12 1)
+export osh_rabbitmq_magnum_password=$(pwgen -c 12 1)
+``` 
+
+
 ## Reuse Password
 
 #### Infra

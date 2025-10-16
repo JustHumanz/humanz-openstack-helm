@@ -1,0 +1,72 @@
+conf:
+  magnum:
+    DEFAULT:
+      log_config_append: 
+      debug: "True"
+    api:
+      workers: 1
+    cluster_template:
+      kubernetes_allowed_network_drivers: calico
+      kubernetes_default_network_driver: calico
+    capi_client:
+      endpoint_type: publicURL
+      insecure: "True"
+    drivers:
+      verify_ca: "False"
+    barbican_client:
+      endpoint_type: internalURL
+      region_name: RegionOne
+    cinder_client:
+      endpoint_type: internalURL
+      region_name: RegionOne
+    glance_client:
+      endpoint_type: internalURL
+      region_name: RegionOne
+    heat_client:
+      endpoint_type: internalURL
+      region_name: RegionOne
+    manila_client:
+      endpoint_type: internalURL
+      region_name: RegionOne
+    magnum_client:
+      region_name: RegionOne      
+    neutron_client:
+      endpoint_type: internalURL
+      region_name: RegionOne
+    nova_client:
+      api_version: 2.15
+      endpoint_type: internalURL
+      region_name: RegionOne
+    octavia_client:
+      endpoint_type: internalURL
+      region_name: RegionOne
+    keystone_auth:
+      auth_url: http://keystone-api.openstack.svc.cluster.local:5000/v3
+      user_domain_name: service
+      username: "magnum"
+      insecure: "True"
+    keystone_authtoken:
+      interface: internalURL
+      insecure: "True"
+      region_name: RegionOne
+      www_authenticate_uri: http://keystone-api.openstack.svc.cluster.local:5000/v3
+    trust:
+      trustee_keystone_interface: public
+      trustee_keystone_region_name: RegionOne
+
+endpoints:
+  container_infra:
+    scheme:
+      public: https  
+    port:
+      api:
+        public: 443
+
+pod:
+  replicas:
+    api: 1
+    conductor: 1
+
+manifests:
+  ingress_api: false
+  service_ingress_api: false

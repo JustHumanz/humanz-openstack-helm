@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: magnum
+  namespace: openstack
+spec:
+  tls:
+    - hosts:
+        - "magnum.ctl1-humanz.cloud"
+      secretName: humanz-cloud-tls
+  ingressClassName: nginx
+  rules:
+  - host: magnum.ctl1-humanz.cloud
+    http:
+      paths:
+      - backend:
+          service:
+            name: magnum-api
+            port:
+              name: m-api
+        path: /
+        pathType: Prefix

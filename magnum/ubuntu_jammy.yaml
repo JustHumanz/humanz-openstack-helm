@@ -1,0 +1,14 @@
+images:
+  tags:
+    bootstrap: quay.io/airshipit/heat:2025.1-ubuntu_noble
+    db_init: quay.io/airshipit/heat:2025.1-ubuntu_noble
+    magnum_db_sync: hub.humanz.moe/airshipit/magnum:2025.1-ubuntu_noble
+    db_drop: quay.io/airshipit/heat:2025.1-ubuntu_noble
+    rabbit_init: docker.io/rabbitmq:3.13-management
+    ks_user: quay.io/airshipit/heat:2025.1-ubuntu_noble
+    ks_service: quay.io/airshipit/heat:2025.1-ubuntu_noble
+    ks_endpoints: quay.io/airshipit/heat:2025.1-ubuntu_noble
+    magnum_api: hub.humanz.moe/airshipit/magnum:2025.1-ubuntu_noble
+    magnum_conductor: hub.humanz.moe/airshipit/magnum:2025.1-ubuntu_noble
+    dep_check: quay.io/airshipit/kubernetes-entrypoint:latest-ubuntu_focal
+    image_repo_sync: docker.io/docker:17.07.0
