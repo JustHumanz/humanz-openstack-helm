@@ -87,7 +87,7 @@ kubectl apply -f cert-manager/octavia-cert.yaml
 wget https://tarballs.opendev.org/openstack/octavia/test-images/test-only-amphora-x64-haproxy-ubuntu-jammy.qcow2
 openstack image create amphora-x64-haproxy-ubuntu-jammy --public --container-format=bare --disk-format qcow2 --min-disk 2 --file test-only-amphora-x64-haproxy-ubuntu-jammy.qcow2 --progress
 openstack image set --tag octavia-amphora-image amphora-x64-haproxy-ubuntu-jammy
-IMAGE_OWNER_ID=$(openstack image show 11913b6a-2709-435f-a03d-bae94668f302 -c owner -f value)
+IMAGE_OWNER_ID=$(openstack image show amphora-x64-haproxy-ubuntu-jammy -c owner -f value)
 
 openstack network create lb-mgmt-net
 
@@ -116,12 +116,11 @@ openstack security group rule create --protocol tcp --dst-port 22 octavia-sec-gr
 
 openstack keypair create octavia-key > octavia-key.pem
 
-openstack port create --network lb-mgmt-net octavia-manager-port-ctl1-humanz
-openstack port set --host $HOSTNAME octavia-manager-port-ctl1-humanz
-
-
 openstack port create --network lb-mgmt-net octavia-health-manager-port-ctl1-humanz
 openstack port set --host $HOSTNAME octavia-health-manager-port-ctl1-humanz
+
+openstack port create --network lb-mgmt-net octavia-worker-port-ctl1-humanz
+openstack port set --host $HOSTNAME octavia-worker-port-ctl1-humanz
 
 OCTAVIA_NETWORK=$(openstack network show lb-mgmt-net -f value -c ID)
 OCTAVIA_SEC_GROUP=$(openstack security group show octavia-sec-group -c id -f value)
