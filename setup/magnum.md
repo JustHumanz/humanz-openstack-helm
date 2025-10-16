@@ -144,8 +144,27 @@ images:
     image_repo_sync: docker.io/docker:17.07.0
 EOF
 ```
+Create ClusterRole 
+```
+tee magnum/ClusterRole.yaml  <<EOF
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: magnum-capi
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: magnum-conductor
+    namespace: openstack
+EOF
 
-# Install neutron & watch
+kubectl apply -f magnum/ClusterRole.yaml
+```
+
+# Install magnum & watch
 
 ```bash
 helm upgrade --install magnum openstack-helm/magnum \
