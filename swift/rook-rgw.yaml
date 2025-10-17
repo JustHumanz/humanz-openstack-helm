@@ -35,3 +35,22 @@ spec:
     port: 80
     # securePort: 443
     instances: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rook-ceph-rgw-swift-rgw-external
+  namespace: openstack
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 32536
+      name: http
+  selector:
+    app: rook-ceph-rgw
+    ceph_daemon_id: swift-rgw
+    rgw: swift-rgw
+    rook_cluster: openstack
+    rook_object_store: swift-rgw
