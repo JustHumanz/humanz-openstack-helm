@@ -47,7 +47,7 @@ function test_helm(){
 }
 
 function test_swift(){
-  echo "⏳ Testing ''$1' with kubectl."  
+  echo "⏳ Testing '$1' with kubectl."  
   kubectl apply -f swift/rook-rgw.yaml --dry-run=client
   return $?
 }
