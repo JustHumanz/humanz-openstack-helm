@@ -73,6 +73,14 @@ export osh_rabbitmq_horizon_password=$(pwgen -c 12 1)
 export osh_os_swift_user_password=$(pwgen -c 12 1)
 ``` 
 
+### Barbican
+```bash
+export osh_mariadb_barbican_password=$(pwgen -c 12 1)
+export osh_rabbitmq_barbican_password=$(pwgen -c 12 1)
+export osh_os_barbican_user_password=$(pwgen -c 12 1)
+export osh_os_barbican_kek=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
+```
+
 ### Magnum
 ```bash
 export osh_os_magnum_user_password=$(pwgen -c 12 1)

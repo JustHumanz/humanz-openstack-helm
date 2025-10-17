@@ -115,10 +115,10 @@ conf:
       client_cert: /etc/octavia/certs/client/tls-combined.pem
       server_ca: /etc/octavia/certs/server/ca.crt
     controller_worker:
-      amp_image_owner_id: 619e0de9e977480881e89f6d5d26a818
-      amp_secgroup_list: 834fdc5a-eea5-4fb5-ac0e-1773723ec0c4
-      amp_flavor_id: 2e69cc23-923d-47d8-85a9-78f3503a443d
-      amp_boot_network_list: 2a8c668d-5dc0-48b4-9929-b99c58f29bf5
+      amp_image_owner_id: f67d875976bc4d4aad13979bcbf98e96
+      amp_secgroup_list: 44c21478-c953-4689-a2bc-a7dee5d9acba
+      amp_flavor_id: 6db3ef45-ce99-4a39-b2fc-41a05a2e1096
+      amp_boot_network_list: dc9dd118-de10-4ac3-a608-3bc8b18fd4ce
       amp_ssh_key_name: octavia-key
       amp_image_tag: octavia-amphora-image
       network_driver: allowed_address_pairs_driver

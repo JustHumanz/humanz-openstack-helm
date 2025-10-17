@@ -2,6 +2,20 @@ pod:
   replicas:
     api: 1
 
+endpoints:
+  key_manager:
+    scheme:
+      public: https
+    port:
+      api:
+        public: 443
+
+network:
+  api:
+    node_port:
+      enabled: true
+      port: 32525
+
 manifests:
   ingress_api: false
   service_ingress_api: false
