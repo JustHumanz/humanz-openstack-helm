@@ -24,11 +24,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Install tools
-      - name: Install Tools
+      # Install wireguard
+      - name: Install wireguard
         shell: bash
         run: |
-          sudo apt update && sudo apt install curl jq -y
+          sudo apt update && sudo apt install wireguard curl jq -y
+
+      # Get vpn config
+      - name: Decrypt wg.conf with GPG
+        run: |
+          gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output vpn/wg.conf vpn/wg.conf.enc
+
+      # start vpn config
+      - name: Start wg
+        run: |
+          sudo wg-quick up vpn/wg.conf
+
+      # Check VPN connection
+      - name: Check keystone endpoint
+        shell: bash
+        run: |
+          curl http://keystone.ctl1-humanz.cloud 
 
       # Install Helm
       - name: Install helm 
