@@ -82,6 +82,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    needs: testing
     if: join(github.event.pull_request.labels.*.name, '') != ''
     steps:
       - uses: actions/checkout@v4
@@ -140,6 +141,6 @@ jobs:
       - name: Update helm
         run: |
           chmod +x deploy.sh
-          for service in $(echo "${{ toJson(github.event.pull_request.labels) }}" | jq -r '.[].name'); 
+          for service in $(echo '${{ toJson(github.event.pull_request.labels) }}' | jq -r '.[].name'); 
             do ./deploy.sh $service
           done
