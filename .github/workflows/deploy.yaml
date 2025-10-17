@@ -19,9 +19,70 @@ env:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install wireguard
+      - name: Install wireguard
+        shell: bash
+        run: |
+          sudo apt update && sudo apt install wireguard curl jq -y
+
+      # Get vpn config
+      - name: Decrypt wg.conf with GPG
+        run: |
+          gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output vpn/wg.conf vpn/wg.conf.enc
+
+      # start vpn config
+      - name: Start wg
+        run: |
+          sudo wg-quick up vpn/wg.conf
+
+      # Check VPN connection
+      - name: Check keystone endpoint
+        shell: bash
+        run: |
+          curl http://keystone.ctl1-humanz.cloud 
+
+      # Install Helm
+      - name: Install helm 
+        shell: bash
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sudo bash
+
+      # Drop kubeconfig
+      - name: Create kubeconfig
+        run: |
+          mkdir -p ${HOME}/.kube
+          echo ${{ secrets.KUBE_CONFIG }} | base64 --decode > ${HOME}/.kube/config
+
+      # Add helm repo & Install plugin
+      - name: openstack helm repo&plugin
+        shell: bash
+        run: |
+          /usr/local/bin/helm repo add openstack-helm https://tarballs.opendev.org/openstack/openstack-helm
+          /usr/local/bin/helm plugin install https://opendev.org/openstack/openstack-helm-plugin
+
+      # Get password config
+      - name: Decrypt all GPG pasword.yaml
+        run: |
+          for i in $(find . -name password.yaml.enc);
+          do
+              passfile=$(echo $i | sed 's/.enc//g')
+              gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output $passfile $i
+          done        
+
+      # Run Testing
+      - name: Testing helm cart
+        run: |
+          chmod +x ./test.sh 
+          ./test.sh 
+
   deploy:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.labels.*.name != null && github.event.pull_request.labels.*.name != ''
+    if: join(github.event.pull_request.labels.*.name, '') != ''
     steps:
       - uses: actions/checkout@v4
 
