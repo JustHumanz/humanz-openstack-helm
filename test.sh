@@ -48,7 +48,7 @@ function test_helm(){
 
 function test_swift(){
   echo "⏳ Testing ''$1' with kubectl."  
-  kubectl apply -f swift/rook-rgw.yaml --dry-run=server
+  kubectl apply -f swift/rook-rgw.yaml --dry-run=client
   return $?
 }
 
@@ -71,5 +71,5 @@ for service in ${services[@]};
     if [[ $? != 0 ]]; then
       exit $?
     fi
-    
+
 done;
