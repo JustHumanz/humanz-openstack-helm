@@ -65,3 +65,7 @@ network:
       port: 32527
 
 storage: rbd
+
+volume:
+  class_name: ceph-rbd
+  size: 10Gi

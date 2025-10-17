@@ -1,3 +1,7 @@
+bootstrap:
+  wait_for_computes:
+    enabled: true
+
 dependencies:
   dynamic:
     targeted:
@@ -6,6 +10,8 @@ dependencies:
           pod: []
 
 conf:
+  ceph:
+    enabled: true
   nova:
     DEFAULT:
       vif_plugging_is_fatal: true
