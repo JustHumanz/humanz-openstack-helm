@@ -1,10 +1,11 @@
 ---
+conf:
+  ceph:
+    enabled: true
+
 dependencies:
   dynamic:
     targeted:
       openvswitch:
         libvirt:
           pod: []
-conf:
-  ceph:
-    enabled: true

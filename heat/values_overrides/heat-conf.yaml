@@ -46,3 +46,13 @@ manifests:
   ingress_cfn: false
   service_ingress_api: false
   service_ingress_cfn: false
+
+network:
+  api:
+    node_port:
+      enabled: true
+      port: 32528
+  cfn:
+    node_port:
+      enabled: true
+      port: 32529

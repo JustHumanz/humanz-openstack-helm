@@ -1,7 +1,3 @@
-pod:
-  replicas:
-    api: 1
-
 endpoints:
   key_manager:
     scheme:
@@ -10,12 +6,16 @@ endpoints:
       api:
         public: 443
 
+manifests:
+  ingress_api: false
+  service_ingress_api: false
+
 network:
   api:
     node_port:
       enabled: true
       port: 32525
 
-manifests:
-  ingress_api: false
-  service_ingress_api: false
+pod:
+  replicas:
+    api: 1

@@ -6,6 +6,13 @@ endpoints:
       api:
         default: 5000
         public: 443
+
 manifests:
   ingress_api: false
   service_ingress_api: false
+
+network:
+  api:
+    node_port:
+      enabled: true
+      port: 32531
