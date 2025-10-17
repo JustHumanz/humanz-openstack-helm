@@ -1,10 +1,3 @@
-storage: rbd
-conf:
-  glance:
-    rbd:
-      rbd_store_chunk_size: 8
-      rbd_store_replication: 1
-      rbd_store_crush_rule: replicated_rule
 bootstrap:
   structured:
     images:
@@ -32,6 +25,14 @@ bootstrap:
         min_disk: 3
         image_type: qcow2
         container_format: bare
+
+conf:
+  glance:
+    rbd:
+      rbd_store_chunk_size: 8
+      rbd_store_replication: 1
+      rbd_store_crush_rule: replicated_rule
+
 endpoints:
   identity:
     hosts:
@@ -51,7 +52,16 @@ endpoints:
     port:
       api:
         default: 9292
-        public: 443     
+        public: 443
+
 manifests:
   ingress_api: false
   service_ingress_api: false
+
+network:
+  api:
+    node_port:
+      enabled: true
+      port: 32527
+
+storage: rbd

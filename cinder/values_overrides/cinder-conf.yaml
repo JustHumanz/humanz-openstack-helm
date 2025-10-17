@@ -1,13 +1,3 @@
-jobs:
-  volume_usage_audit:
-    cron: "55 * * * *"
-
-pod:
-  security_context:
-    cinder_volume:
-      container:
-        cinder_volume:
-          privileged: true
 conf:
   ceph:
     pools:
@@ -18,6 +8,7 @@ conf:
   cinder:
     DEFAULT:
       os_region_name: RegionOne
+
 endpoints:
   identity:
     hosts:
@@ -48,6 +39,24 @@ endpoints:
       api:
         default: 8776
         public: 443
+
+jobs:
+  volume_usage_audit:
+    cron: "55 * * * *"
+
 manifests:
   ingress_api: false
   service_ingress_api: false
+
+network:
+  api:
+    node_port:
+      enabled: true
+      port: 32526
+
+pod:
+  security_context:
+    cinder_volume:
+      container:
+        cinder_volume:
+          privileged: true

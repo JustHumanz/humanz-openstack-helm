@@ -143,7 +143,13 @@ endpoints:
       api:
         default: 80
         public: 443
+
 manifests:
   ingress_api: false
   service_ingress: false
   configmap_logo: true
+
+network:
+  node_port:
+    enabled: true
+    port: 32530
