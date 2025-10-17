@@ -202,3 +202,23 @@ spec:
 EOF
 kubectl apply -f magnum/ingress.yaml
 ```
+## Create Image&Template
+```
+wget https://static.atmosphere.dev/artifacts/magnum-cluster-api/ubuntu-jammy-kubernetes-1-31-1-1728920853.qcow2 -O ubuntu-jammy-kubernetes-v1-31-1.qcow2
+
+openstack image create ubuntu-jammy-kube-v1-31-1 \
+  --file ubuntu-jammy-kubernetes-v1-31-1.qcow2  \
+  --disk-format qcow2 \
+  --container-format bare \
+  --public \
+  --progress
+
+openstack image set ubuntu-jammy-kube-v1-31-1 --os-distro ubuntu --os-version 22.04 --property os_distro=ubuntu 
+openstack coe cluster template create kube-v1-31-1 --coe kubernetes \
+  --label octavia_provider=ovn --image $(openstack image show ubuntu-jammy-kube-v1-31-1 -c id -f value) \
+  --external-network ext-net --master-flavor m1.medium  --flavor m1.medium --public \
+  --dns-nameserver 172.16.18.1 --label kube_tag=v1.31.1
+
+openstack coe cluster create --cluster-template kube-v1.32.1 --master-count 1 --node-count 1 --keypair ctl1 test-cluster
+
+```
