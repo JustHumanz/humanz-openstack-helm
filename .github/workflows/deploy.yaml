@@ -59,7 +59,7 @@ jobs:
           done        
 
       # Run Testing
-      - name: Update helm
+      - name: Testing helm cart
         run: |
           chmod +x ./test.sh 
           ./test.sh 
