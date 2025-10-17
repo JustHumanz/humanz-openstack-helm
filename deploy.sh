@@ -67,11 +67,7 @@ if [[ " ${allowed_services[*]} " =~ " ${service} " ]]; then
 
   if [[ "$service" == "swift" ]]; then
       update_swift $service
-      if [[ $? != 0 ]]; then
-        exit $?
-      fi
-
-      continue
+      exit $?
       
   fi
 
@@ -81,9 +77,7 @@ if [[ " ${allowed_services[*]} " =~ " ${service} " ]]; then
   fi
 
   deploy_helm $service "${default_helm_args[@]}"
-  if [[ $? != 0 ]]; then
-    exit $?
-  fi
+  exit $?
 
 else
   echo "❌ Invalid service: '$service'"
