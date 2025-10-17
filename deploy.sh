@@ -48,17 +48,17 @@ fi
 function deploy_helm(){
   helm_args=("$@")
   echo "⏳ Deploying '$1' with helm."
-  set -x
   helm upgrade --install $1 openstack-helm/$1 \
       --timeout=600s \
       --namespace=openstack \
       $(helm osh get-values-overrides -p ${OVERRIDES_DIR} -c $1 ${FEATURES} ${helm_args[@]} $values_dir/$1-conf 2>/dev/null)
-  set +x
+  return $?
 }
 
 function update_swift(){
-  echo "⏳ Deploying ''$1' with kubectl."  
+  echo "⏳ Deploying '$1' with kubectl."  
   kubectl apply -f swift/rook-rgw.yaml
+  return $?
 }
 
 # Check if service is in allowed list
@@ -67,7 +67,12 @@ if [[ " ${allowed_services[*]} " =~ " ${service} " ]]; then
 
   if [[ "$service" == "swift" ]]; then
       update_swift $service
-      exit 0
+      if [[ $? != 0 ]]; then
+        exit $?
+      fi
+
+      continue
+      
   fi
 
   echo "$service" | grep -Eq '^(magnum|openvswitch|ovn)$'
@@ -76,6 +81,9 @@ if [[ " ${allowed_services[*]} " =~ " ${service} " ]]; then
   fi
 
   deploy_helm $service "${default_helm_args[@]}"
+  if [[ $? != 0 ]]; then
+    exit $?
+  fi
 
 else
   echo "❌ Invalid service: '$service'"
