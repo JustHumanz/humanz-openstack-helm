@@ -1,4 +1,11 @@
 # Setup helm manifest
+```bash
+curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.7.1/clusterctl-linux-amd64 -o bin/clusterctl
+export EXP_CLUSTER_RESOURCE_SET=true
+export EXP_KUBEADM_BOOTSTRAP_FORMAT_IGNITION=true 
+export CLUSTER_TOPOLOGY=true
+bin/clusterctl init --core cluster-api --bootstrap kubeadm --control-plane kubeadm --infrastructure openstack    
+```
 
 ```bash
 mkdir -p magnum/values_overrides/

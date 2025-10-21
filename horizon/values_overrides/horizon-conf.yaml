@@ -122,6 +122,7 @@ conf:
     extra_panels:
       - heat_dashboard
       - octavia_dashboard
+      - magnum_ui
 
 endpoints:
   identity:
