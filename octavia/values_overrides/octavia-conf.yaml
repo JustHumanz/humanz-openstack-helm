@@ -5,9 +5,10 @@ conf:
   octavia:
     DEFAULT:
       debug: "True"
+      log_config_append: null
     api_settings:
       default_provider_driver: amphorav2
-      enabled_provider_drivers: amphorav2:'The v2 amphora driver.',amphora:'The Octavia Amphora driver.',octavia:'Deprecated name of Amphora driver.' 
+      enabled_provider_drivers: ovn:'The ovn Provider',amphorav2:'The v2 amphora driver.',amphora:'The Octavia Amphora driver.',octavia:'Deprecated name of Amphora driver.' 
       healthcheck_enabled: false
     certificates:
       ca_certificate: /etc/octavia/certs/server/ca.crt
