@@ -1,4 +1,6 @@
 *password.yaml
 test/
 wg.conf
-bin/
+bin/clusterctl
+*.tgz
+Chart.lock
