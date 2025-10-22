@@ -74,6 +74,13 @@ jobs:
               gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output $passfile $i
           done        
 
+      # Setup helm build
+      - name: Build helm deploy script
+        run: |
+          for service in $(ls openstack-helm/); 
+            do helm dependency build openstack-helm/$service
+          done
+
       # Run Testing
       - name: Testing helm cart
         run: |
@@ -135,7 +142,14 @@ jobs:
           do
               passfile=$(echo $i | sed 's/.enc//g')
               gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output $passfile $i
-          done        
+          done
+
+      # Setup helm build
+      - name: Build helm deploy script
+        run: |
+          for service in $(echo '${{ toJson(github.event.pull_request.labels) }}' | jq -r '.[].name'); 
+            do helm dependency build openstack-helm/$service
+          done
 
       # Run helm upgrade
       - name: Update helm
