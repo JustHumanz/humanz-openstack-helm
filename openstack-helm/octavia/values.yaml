@@ -25,7 +25,7 @@ labels:
     node_selector_key: openstack-control-plane
     node_selector_value: enabled
   driver_agent:
-    node_selector_key: openstack-network-node
+    node_selector_key: openstack-control-plane
     node_selector_value: enabled
   worker:
     node_selector_key: openstack-network-node
