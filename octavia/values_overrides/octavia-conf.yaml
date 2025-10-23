@@ -15,6 +15,7 @@ conf:
       ca_private_key: /etc/octavia/certs/server/tls.key
       ca_private_key_passphrase: null
       endpoint_type: internalURL
+      insecure: "True"
     haproxy_amphora:
       client_cert: /etc/octavia/certs/client/tls-combined.pem
       server_ca: /etc/octavia/certs/server/ca.crt
@@ -36,12 +37,21 @@ conf:
       controller_ip_port_list: "192.168.18.100:5555"
     cinder:
       endpoint_type: internalURL
+      insecure: "True"
     glance:
       endpoint_type: internalURL
+      insecure: "True"
     neutron:
       endpoint_type: internalURL
+      insecure: "True"
     nova:
       endpoint_type: internalURL
+      insecure: "True"
+    keystone_authtoken:
+      endpoint_type: internalURL
+      insecure: "True"
+    service_auth:
+      insecure: "True"
 
 endpoints:
   load_balancer:
