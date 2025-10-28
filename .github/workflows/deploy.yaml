@@ -148,7 +148,12 @@ jobs:
       - name: Build helm deploy script
         run: |
           for service in $(echo '${{ toJson(github.event.pull_request.labels) }}' | jq -r '.[].name'); 
-            do helm dependency build openstack-helm/$service
+            do
+              if [ -d "openstack-helm/$service" ]; then
+                 helm dependency build openstack-helm/$service
+              else
+                 echo "Using Upstream Helm Chart for $service"
+              fi
           done
 
       # Run helm upgrade
