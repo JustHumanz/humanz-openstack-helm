@@ -1,0 +1,38 @@
+defaultRules:
+  create: false
+
+alertmanager:
+  ## Deploy alertmanager
+  ##
+  enabled: false
+
+## Using default values from https://github.com/grafana-community/helm-charts/blob/main/charts/grafana/values.yaml
+##
+grafana:
+  service:
+    portName: http-web
+    ipFamilies: []
+    ipFamilyPolicy: ""
+    nodePort: 30000
+    ## NodePort, ClusterIP, LoadBalancer
+    ##
+    type: NodePort
+
+prometheus:
+  ## Settings affecting prometheusSpec
+  ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#prometheusspec
+  ##
+  prometheusSpec:
+    additionalScrapeConfigs: |
+      - job_name: 'ceph-node-exporter'
+        scheme: http
+        static_configs:
+          - targets: ['192.168.18.100:9926']
+      - job_name: 'nsf4-exporter'
+        scheme: http
+        static_configs:
+          - targets: ['192.168.18.100:2112'] 
+      - job_name: 'nvidia-exporter'
+        scheme: http
+        static_configs:
+          - targets: ['nvidia-gpu-exporter.monitoring.svc.cluster.local:9835']
