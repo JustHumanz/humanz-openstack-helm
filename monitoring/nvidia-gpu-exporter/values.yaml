@@ -42,11 +42,11 @@ service:
   # -- Enables the Service
   enabled: true
   # -- Type of the service
-  type: ClusterIP
+  type: NodePort
   # -- Port for the service to use
   port: 9835
   # -- The node port to use if service type is NodePort or LoadBalancer.
-  nodePort:
+  nodePort: 32766
 
 ingress:
   # -- Expose the app using an Ingress

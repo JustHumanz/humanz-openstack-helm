@@ -23,20 +23,21 @@ prometheus:
   ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#prometheusspec
   ##
   prometheusSpec:
+    enableAdminAPI: true
     additionalScrapeConfigs: |
       - job_name: 'ceph-node-exporter'
         scheme: http        
         static_configs:
-          - targets: ['192.168.18.100:9926']
+          - targets: ['192.168.20.100:9926']
       - job_name: 'nsf4-exporter'
         scheme: http
         scrape_interval: 5s
-        scrape_timeout: 3s        
+        scrape_timeout: 3s
         static_configs:
-          - targets: ['192.168.18.100:2112'] 
+          - targets: ['192.168.20.100:2112'] 
       - job_name: 'nvidia-exporter'
         scheme: http
         scrape_interval: 5s
-        scrape_timeout: 3s        
+        scrape_timeout: 3s
         static_configs:
-          - targets: ['nvidia-gpu-exporter.monitoring.svc.cluster.local:9835']
+          - targets: ['192.168.20.250:32766']
