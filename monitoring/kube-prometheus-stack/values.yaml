@@ -31,7 +31,7 @@ prometheus:
           - targets: ['192.168.20.100:9926']
       - job_name: 'nsf4-exporter'
         scheme: http
-        scrape_interval: 5s
+        scrape_interval: 1s
         scrape_timeout: 3s
         static_configs:
           - targets: ['192.168.20.100:2112'] 
