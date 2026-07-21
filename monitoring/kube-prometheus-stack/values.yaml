@@ -11,12 +11,10 @@ alertmanager:
 grafana:
   service:
     portName: http-web
-    ipFamilies: []
-    ipFamilyPolicy: ""
-    nodePort: 30000
+    #nodePort: 30000
     ## NodePort, ClusterIP, LoadBalancer
     ##
-    type: NodePort
+    type: LoadBalancer
 
 prometheus:
   ## Settings affecting prometheusSpec
@@ -32,7 +30,7 @@ prometheus:
       - job_name: 'nsf4-exporter'
         scheme: http
         scrape_interval: 1s
-        scrape_timeout: 3s
+        scrape_timeout: 1s
         static_configs:
           - targets: ['192.168.20.100:2112'] 
       - job_name: 'nvidia-exporter'
