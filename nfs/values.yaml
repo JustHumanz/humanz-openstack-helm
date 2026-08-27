@@ -1,0 +1,14 @@
+nfs:
+  server: 192.168.20.100
+  path: /kube_pvc
+  mountOptions:
+  - tcp
+  - rsize=131072
+  - wsize=131072
+  - hard
+  - timeo=600
+  - retrans=2
+  - vers=4
+storageClass:
+  name: nfs-client
+  defaultClass: false  
