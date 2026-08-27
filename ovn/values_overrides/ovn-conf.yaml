@@ -1,8 +1,9 @@
 conf:
   ovn_cms_options: "enable-chassis-as-gw,availability-zones=nova"
-  ovn_bridge_mappings: public:br-ex
+  ovn_bridge_mappings: public:br-ex,external:br-ext
   auto_bridge_add:
     br-ex: fip
+    br-ext: bond0
 
 volume:
   ovn_ovsdb_nb:

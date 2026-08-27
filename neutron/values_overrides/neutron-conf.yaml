@@ -9,8 +9,10 @@ conf:
     ml2_conf:
       ml2:
         extension_drivers: port_security
-        type_drivers: flat,vxlan,geneve
+        type_drivers: flat,vlan,geneve
         tenant_network_types: geneve
+      ml2_type_vlan:
+        network_vlan_ranges: external:10:200
       ovn:
         ovn_l3_scheduler: leastloaded
         dns_servers: 8.8.8.8,1.1.1.1
