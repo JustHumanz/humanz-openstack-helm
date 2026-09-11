@@ -1,0 +1,6 @@
+---
+# Defaults for kube_install role
+kube_install_target_version: ""  # expected like v1.26.3 or 1.26.3
+
+# Where to place downloaded binaries on non-debian systems
+kube_install_bin_dir: /usr/local/bin/
