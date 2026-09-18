@@ -1,0 +1,84 @@
+---
+# Ansible playbook to upgrade a kubeadm-managed Kubernetes cluster.
+# Requirements:
+# - Inventory must define groups `kube_control_plane` and `kube_node`.
+# - The control-plane nodes must have a valid kubeconfig at `/etc/kubernetes/admin.conf` (or set `kubeadm_kubeconfig`).
+# - Provide `target_k8s_version` as an extra-var (e.g. v1.26.3).
+
+- name: Upgrade Kubernetes control-plane nodes with kubeadm
+  hosts: kube_control_plane
+  serial: 1
+  become: true
+  vars:
+    kubeadm_kubeconfig: /etc/kubernetes/admin.conf
+    target_k8s_version: ""  # required (e.g. v1.26.3)
+  tasks:
+    - name: Ensure target version is provided
+      assert:
+        that:
+          - target_k8s_version != ""
+        fail_msg: "Set target_k8s_version, e.g., v1.26.3"
+
+    - name: Normalize version (strip leading v if present)
+      set_fact:
+        kube_version_clean: "{{ target_k8s_version[1:] if target_k8s_version.startswith('v') else target_k8s_version }}"
+
+    - name: Install kubeadm/kubelet/kubectl (cross-distro role)
+      include_role:
+        name: kube_install
+      vars:
+        kube_install_target_version: "{{ target_k8s_version }}"
+
+    - name: Show kubeadm upgrade plan
+      command: kubeadm upgrade plan {{ target_k8s_version }}
+      register: upgrade_plan
+      changed_when: false
+
+    - name: Apply kubeadm upgrade on control-plane
+      command: >-
+        kubeadm upgrade apply --yes {{ target_k8s_version }}
+      environment:
+        KUBECONFIG: "{{ kubeadm_kubeconfig }}"
+
+- name: Upgrade Kubernetes worker nodes
+  hosts: kube_node
+  serial: 1
+  become: true
+  vars:
+    kubeadm_kubeconfig: /etc/kubernetes/admin.conf
+    target_k8s_version: ""
+    drain_node: true
+  tasks:
+    - name: Normalize version (strip leading v if present)
+      set_fact:
+        kube_version_clean: "{{ target_k8s_version[1:] if target_k8s_version.startswith('v') else target_k8s_version }}"
+
+    - name: Cordon {{ inventory_hostname }}
+      shell: >-
+        kubectl --kubeconfig {{ kubeadm_kubeconfig }} cordon {{ inventory_hostname }}
+      register: cordon_out
+      when: drain_node == true
+      
+    - name: Drain {{ inventory_hostname }}
+      shell: >-
+        kubectl --kubeconfig {{ kubeadm_kubeconfig }} drain {{ inventory_hostname }} --ignore-daemonsets --delete-local-data --timeout=5m
+      register: drain_out
+      when: drain_node == true
+      
+    - name: Install kubeadm/kubelet/kubectl on worker (cross-distro role)
+      include_role:
+        name: kube_install
+      vars:
+        kube_install_target_version: "{{ target_k8s_version }}"
+
+    - name: Apply kubeadm upgrade on node
+      command: >-
+        kubeadm upgrade node
+      environment:
+        KUBECONFIG: "{{ kubeadm_kubeconfig }}"
+
+    - name: Uncordon {{ inventory_hostname }}
+      shell: >-
+        kubectl --kubeconfig {{ kubeadm_kubeconfig }} uncordon {{ inventory_hostname }}
+      register: uncordon_out
+      when: drain_node == true

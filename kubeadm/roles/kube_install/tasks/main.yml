@@ -1,0 +1,90 @@
+---
+# Install kubeadm, kubelet and kubectl across distros.
+# For Debian/Ubuntu: update apt repo to the appropriate core:/stable:/vX.Y/ path and install packages.
+# For other distros: download kubeadm/kubelet binaries from dl.k8s.io and place into `kube_install_bin_dir`.
+
+- name: Ensure target version provided for kube_install
+  assert:
+    that:
+      - kube_install_target_version != ""
+    fail_msg: "kube_install_target_version is required (e.g. v1.26.3)"
+
+- name: Normalize install version (ensure leading v)
+  set_fact:
+    kube_install_version: "{{ 'v' + (kube_install_target_version[1:] if kube_install_target_version.startswith('v') else kube_install_target_version) }}"
+
+- name: Compute repo version (major.minor) for apt repos
+  set_fact:
+    kube_install_repo_version: "{{ (kube_install_version.split('.')[0] + '.' + kube_install_version.split('.')[1]) | default(kube_install_version) }}"
+
+- name: Ubuntu/Debian - ensure apt sources dir exists
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  when: ansible_facts["distribution"] | lower in ['ubuntu', 'debian']
+
+- name: Ubuntu/Debian - write kubernetes apt source list
+  copy:
+    dest: /etc/apt/sources.list.d/kubernetes.list
+    content: |
+      deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/{{ kube_install_repo_version }}/deb/ /
+    owner: root
+    group: root
+    mode: '0644'
+  when: ansible_facts["distribution"] | lower in ['ubuntu', 'debian']
+
+- name: Ubuntu/Debian - install kube packages via apt
+  apt:
+    name:
+      - "kubeadm"
+      - "kubelet"
+      - "kubectl"
+    state: latest
+    update_cache: yes
+    allow_change_held_packages: true
+  when: ansible_facts["distribution"] | lower in ['ubuntu', 'debian']
+  notify: restart kubelet
+
+- name: Non-debian - download kubeadm binary
+  when: ansible_facts["distribution"] | lower not in ['ubuntu', 'debian']
+  vars:
+    kubeadm_url: "https://dl.k8s.io/release/{{ kube_install_version }}/bin/linux/amd64/kubeadm"
+  ansible.builtin.get_url:
+    url: "{{ kubeadm_url }}"
+    dest: "{{ kube_install_bin_dir }}/kubeadm"
+    mode: '0755'
+    force: yes
+
+- name: Non-debian - download kubelet binary
+  when: ansible_facts["distribution"] | lower not in ['ubuntu', 'debian']
+  vars:
+    kubelet_url: "https://dl.k8s.io/release/{{ kube_install_version }}/bin/linux/amd64/kubelet"
+  ansible.builtin.get_url:
+    url: "{{ kubelet_url }}"
+    dest: "{{ kube_install_bin_dir }}/kubelet"
+    mode: '0755'
+    force: yes
+
+- name: Non-debian - download kubectl binary
+  when: ansible_facts["distribution"] | lower not in ['ubuntu', 'debian']
+  vars:
+    kubectl_url: "https://dl.k8s.io/release/{{ kube_install_version }}/bin/linux/amd64/kubectl"
+  ansible.builtin.get_url:
+    url: "{{ kubectl_url }}"
+    dest: "{{ kube_install_bin_dir }}/kubectl"
+    mode: '0755'
+    force: yes
+
+- name: Non-debian - ensure kubelet service present and restart
+  when: ansible_facts["distribution"] | lower not in ['ubuntu', 'debian']
+  block:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: yes
+
+    - name: Ensure kubelet is restarted
+      ansible.builtin.systemd:
+        name: kubelet
+        state: restarted
+  notify: restart kubelet

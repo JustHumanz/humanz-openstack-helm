@@ -1,0 +1,5 @@
+[kube_control_plane]
+ctl1-humanz ansible_host=192.168.20.100
+
+[kube_node]
+humanz-pc ansible_host=192.168.20.250
