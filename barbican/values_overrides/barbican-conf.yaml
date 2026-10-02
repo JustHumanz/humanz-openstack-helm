@@ -7,15 +7,24 @@ endpoints:
         public: 443
 
 manifests:
-  ingress_api: false
-  service_ingress_api: false
+  ingress_api: true
+  service_ingress_api: true
 
 network:
   api:
     node_port:
       enabled: true
       port: 32525
-
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /
+        cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
 pod:
   replicas:
     api: 1
+
+secrets:
+  tls:
+    key_manager:
+      api:
+        public: humanz-cloud-tls    

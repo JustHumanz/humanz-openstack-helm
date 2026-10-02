@@ -42,17 +42,34 @@ jobs:
     cron: "*/45 * * * *"
     
 manifests:
-  ingress_api: false
-  ingress_cfn: false
-  service_ingress_api: false
-  service_ingress_cfn: false
+  ingress_api: true
+  ingress_cfn: true
+  service_ingress_api: true
+  service_ingress_cfn: true
 
 network:
   api:
     node_port:
       enabled: true
       port: 32528
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /
+        cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
   cfn:
     node_port:
       enabled: true
       port: 32529
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /
+        cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
+
+secrets:
+  tls:
+    orchestration:
+      api:
+        public: humanz-cloud-tls
+    cloudformation:
+      cfn:
+        public: humanz-cloud-tls              

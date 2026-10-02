@@ -36,8 +36,8 @@ manifests:
   daemonset_ovs_agent: false
   deployment_rpc_server: false
   daemonset_ovn_metadata_agent: true  
-  ingress_server: false
-  service_ingress_server: false          
+  ingress_server: true
+  service_ingress_server: true          
 
 network:
   backend:
@@ -47,3 +47,13 @@ network:
     node_port:
       enabled: true
       port: 32532
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /
+        cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
+
+secrets:
+  tls:
+    network:
+      api:
+        public: horizon-tls-public

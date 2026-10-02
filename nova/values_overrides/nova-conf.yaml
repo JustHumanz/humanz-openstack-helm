@@ -62,12 +62,12 @@ manifests:
   deployment_placement: false
   ingress_metadata: false
   ingress_novncproxy: true
-  ingress_osapi: false
+  ingress_osapi: true
   ingress_placement: false
   ingress_spiceproxy: false
   service_ingress_metadata: false
   service_ingress_novncproxy: true
-  service_ingress_osapi: false
+  service_ingress_osapi: true
   service_ingress_placement: false
   service_placement: false
   service_ingress_spiceproxy: false
@@ -77,6 +77,18 @@ network:
     node_port:
       enabled: true
       port: 32533
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /
+        cert-manager.io/cluster-issuer: selfsigned-cluster-issuer        
+  novncproxy:
+    ingress:
+      annotations:
+        cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
+        nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+        nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+        nginx.ingress.kubernetes.io/proxy-buffering: "off"
 
 pod:
   probes:
@@ -90,3 +102,8 @@ pod:
           enabled: False
         startup:
           enabled: False
+secrets:
+  tls:
+    compute:
+      osapi:
+        public: humanz-cloud-tls

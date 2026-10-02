@@ -63,16 +63,26 @@ endpoints:
         public: 443
 
 manifests:
-  ingress_api: false
-  service_ingress_api: false
+  ingress_api: true
+  service_ingress_api: true
 
 network:
   api:
     node_port:
       enabled: true
       port: 32535
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /
+        cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
 
 pod:
   replicas:
     api: 1
     conductor: 1
+
+secrets:
+  tls:
+    container_infra:
+      api:
+        public: horizon-tls-public
