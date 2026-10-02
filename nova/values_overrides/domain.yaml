@@ -9,3 +9,5 @@ endpoints:
     host_fqdn_override:
       public:
         host: "vnc.ctl1-humanz.cloud"
+        tls:
+          secretName: humanz-cloud-tls

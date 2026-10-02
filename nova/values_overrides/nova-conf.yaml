@@ -52,10 +52,10 @@ endpoints:
         public: 8775
   compute_novnc_proxy:
     scheme:
-      public: 'http'
+      public: 'https'
     port:
       novnc_proxy:
-        public: 80
+        public: 443
 
 manifests:
   deployment_consoleauth: false
@@ -85,10 +85,9 @@ network:
     ingress:
       annotations:
         cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
-        nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
-        nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-        nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-        nginx.ingress.kubernetes.io/proxy-buffering: "off"
+        nginx.org/websocket-services: "nova-novncproxy"
+        nginx.org/proxy-read-timeout: "3600s"
+        nginx.org/proxy-send-timeout: "3600s"
 
 pod:
   probes:
@@ -107,3 +106,6 @@ secrets:
     compute:
       osapi:
         public: humanz-cloud-tls
+    compute_novnc_proxy:
+      novncproxy:
+        public: humanz-cloud-tls 
