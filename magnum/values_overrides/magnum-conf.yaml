@@ -85,4 +85,4 @@ secrets:
   tls:
     container_infra:
       api:
-        public: horizon-tls-public
+        public: humanz-cloud-tls

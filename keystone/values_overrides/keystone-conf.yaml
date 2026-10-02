@@ -25,4 +25,4 @@ secrets:
   tls:
     identity:
       api:
-        public: horizon-tls-public
+        public: humanz-cloud-tls
