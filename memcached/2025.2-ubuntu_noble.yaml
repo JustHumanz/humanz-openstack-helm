@@ -1,0 +1,6 @@
+images:
+  tags:
+    dep_check: 'quay.io/airshipit/kubernetes-entrypoint:latest-ubuntu_focal'
+    memcached: 'docker.io/library/memcached:1.5.5'
+    prometheus_memcached_exporter: docker.io/prom/memcached-exporter:v0.4.1
+    image_repo_sync: docker.io/library/docker:17.07.0

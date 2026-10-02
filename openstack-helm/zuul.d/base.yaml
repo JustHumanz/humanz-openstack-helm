@@ -1,0 +1,644 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- job:
+    name: openstack-helm-linter
+    run: playbooks/lint.yaml
+    nodeset: openstack-helm-1node-ubuntu_jammy
+    required-projects:
+      - openstack/openstack-helm
+    irrelevant-files:
+      - ^.*\.rst$
+      - ^releasenotes/.*$
+    pre-run:
+      - playbooks/inject-keys.yaml
+
+- job:
+    name: openstack-helm-pre-commit
+    parent: tox-linters
+
+- job:
+    name: openstack-helm-bandit
+    roles:
+      - zuul: openstack/openstack-helm
+      - zuul: zuul/zuul-jobs
+    required-projects:
+      - openstack/openstack-helm
+    files:
+      - ^.*\.py\.tpl$
+      - ^.*\.py$
+      - ^playbooks/osh-bandit.yaml$
+    pre-run: playbooks/prepare-hosts.yaml
+    post-run: playbooks/collect-logs.yaml
+    run: playbooks/osh-bandit.yaml
+    vars:
+      helm_version: "v3.6.3"
+      bandit_version: "1.7.1"
+
+- job:
+    name: openstack-helm-publish-charts
+    parent: publish-openstack-artifacts
+    run: playbooks/build-chart.yaml
+    required-projects:
+      - openstack/openstack-helm
+    post-run: playbooks/publish/post.yaml
+
+- job:
+    name: openstack-helm-deploy
+    abstract: true
+    roles:
+      - zuul: openstack/openstack-helm
+      - zuul: zuul/zuul-jobs
+    required-projects:
+      - openstack/openstack-helm
+      - openstack/openstack-helm-plugin
+    irrelevant-files:
+      - ^.*\.rst$
+      - ^.*\.rst.gotmpl$
+      - ^doc/.*$
+      - ^releasenotes/.*$
+    timeout: 10800
+    pre-run:
+      - playbooks/prepare-hosts.yaml
+      - playbooks/mount-volumes.yaml
+      - playbooks/inject-keys.yaml
+    post-run: playbooks/collect-logs.yaml
+    run:
+      - playbooks/deploy-env.yaml
+      - playbooks/run-scripts.yaml
+    vars:
+      osh_params:
+        container_distro_name: ubuntu
+        container_distro_version: jammy
+      osh_values_overrides_path: "../openstack-helm/values_overrides"
+      gate_scripts_relative_path: "../openstack-helm"
+      overlay_network_setup: true
+      extra_volume:
+        size: 80G
+        type: Linux
+        mount_point: /opt/ext_vol
+      docker:
+        root_path: "/opt/ext_vol/docker"
+      containerd:
+        root_path: "/opt/ext_vol/containerd"
+      kubeadm:
+        pod_network_cidr: "10.244.0.0/16"
+        service_cidr: "10.96.0.0/16"
+      osh_plugin_repo: "{{ zuul.project.src_dir }}/../openstack-helm-plugin"
+      loopback_setup: true
+      loopback_device: /dev/loop100
+      loopback_image: "/opt/ext_vol/openstack-helm/ceph-loop.img"
+      ceph_osd_data_device: /dev/loop100
+      kube_version_repo: "v1.32"
+      kube_version: "1.32.5-1.1"
+      calico_setup: true
+      calico_version: "v3.30.1"
+      cilium_setup: false
+      cilium_version: "1.17.4"
+      flannel_setup: false
+      flannel_version: v0.26.7
+      metallb_setup: true
+      metallb_version: "0.14.9"
+      coredns_resolver_setup: false
+      ingress_setup: true
+      helm_version: "v3.18.1"
+      crictl_version: "v1.33.0"
+      run_helm_tests: "no"
+      openstack_provider_gateway_setup: true
+
+- job:
+    name: openstack-helm-deploy-kubespray
+    parent: openstack-helm-deploy
+    abstract: true
+    # NOTE(kozhukalov): Temporarily disable voting for this job
+    # due to image pull rate limits on Docker Hub.
+    voting: false
+    run:
+      - playbooks/deploy-env-kubespray.yaml
+      - playbooks/run-scripts.yaml
+    vars:
+      kube_version_kubespray: "v1.29.5"
+
+- job:
+    name: openstack-helm-compute-kit
+    parent: openstack-helm-deploy
+    abstract: true
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - export VOLUME_HELM_ARGS="--set volume.enabled=false"; ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/heat/heat.sh
+        - export GLANCE_BACKEND=local; ./tools/deployment/component/glance/glance.sh
+        - ./tools/deployment/component/compute-kit/openvswitch.sh
+        - ./tools/deployment/component/compute-kit/libvirt.sh
+        - ./tools/deployment/component/compute-kit/compute-kit.sh
+        - export OSH_TEST_TIMEOUT=1200;./tools/deployment/common/run-helm-tests.sh neutron
+        - ./tools/deployment/common/run-helm-tests.sh nova
+        - ./tools/deployment/common/run-helm-tests.sh glance
+        - ./tools/deployment/common/run-helm-tests.sh keystone
+        - ./tools/deployment/common/use-it.sh
+        - ./tools/deployment/common/force-cronjob-run.sh
+
+- job:
+    name: openstack-helm-compute-kit-kubespray
+    parent: openstack-helm-deploy-kubespray
+    abstract: true
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - export VOLUME_HELM_ARGS="--set volume.enabled=false"; ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/heat/heat.sh
+        - export GLANCE_BACKEND=local; ./tools/deployment/component/glance/glance.sh
+        - ./tools/deployment/component/compute-kit/openvswitch.sh
+        - ./tools/deployment/component/compute-kit/libvirt.sh
+        - ./tools/deployment/component/compute-kit/compute-kit.sh
+        - export OSH_TEST_TIMEOUT=1200;./tools/deployment/common/run-helm-tests.sh neutron
+        - ./tools/deployment/common/run-helm-tests.sh nova
+        - ./tools/deployment/common/run-helm-tests.sh glance
+        - ./tools/deployment/common/run-helm-tests.sh keystone
+        - ./tools/deployment/common/use-it.sh
+        - ./tools/deployment/common/force-cronjob-run.sh
+
+- job:
+    name: openstack-helm-compute-kit-rook
+    parent: openstack-helm-deploy
+    nodeset: openstack-helm-5nodes-ubuntu_jammy
+    abstract: true
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - ./tools/deployment/ceph/ceph-rook.sh
+        - ./tools/deployment/ceph/ceph-adapter-rook.sh
+        - export VOLUME_HELM_ARGS=" "; ./tools/deployment/component/common/rabbitmq.sh
+        - export VOLUME_HELM_ARGS=" "; ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/cinder/cinder.sh
+        - ./tools/deployment/component/heat/heat.sh
+        - ./tools/deployment/component/glance/glance.sh
+        - ./tools/deployment/component/compute-kit/openvswitch.sh
+        - ./tools/deployment/component/compute-kit/libvirt.sh
+        - ./tools/deployment/component/compute-kit/compute-kit.sh
+        - ./tools/deployment/common/use-it.sh
+        - ./tools/deployment/common/force-cronjob-run.sh
+
+- job:
+    name: openstack-helm-compute-kit-helm-repo-local
+    parent: openstack-helm-deploy
+    abstract: true
+    vars:
+      osh_helm_repo: openstack-helm
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/prepare-helm-repos-local.sh
+        - ./tools/deployment/common/setup-client.sh
+        - ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/heat/heat.sh
+        - export GLANCE_BACKEND=local; ./tools/deployment/component/glance/glance.sh
+        - ./tools/deployment/component/compute-kit/openvswitch.sh
+        - ./tools/deployment/component/compute-kit/libvirt.sh
+        - ./tools/deployment/component/compute-kit/compute-kit.sh
+        - export OSH_TEST_TIMEOUT=1200;./tools/deployment/common/run-helm-tests.sh neutron
+        - ./tools/deployment/common/run-helm-tests.sh nova
+        - ./tools/deployment/common/run-helm-tests.sh glance
+        - ./tools/deployment/common/run-helm-tests.sh keystone
+        - ./tools/deployment/common/use-it.sh
+        - ./tools/deployment/common/force-cronjob-run.sh
+
+- job:
+    name: openstack-helm-compute-kit-helm-repo-public
+    parent: openstack-helm-deploy
+    abstract: true
+    vars:
+      osh_helm_repo: openstack-helm
+      download_overrides: "-d"
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/prepare-helm-repos-public.sh
+        - ./tools/deployment/common/setup-client.sh
+        - ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/heat/heat.sh
+        - export GLANCE_BACKEND=local; ./tools/deployment/component/glance/glance.sh
+        - ./tools/deployment/component/compute-kit/openvswitch.sh
+        - ./tools/deployment/component/compute-kit/libvirt.sh
+        - ./tools/deployment/component/compute-kit/compute-kit.sh
+        - export OSH_TEST_TIMEOUT=1200;./tools/deployment/common/run-helm-tests.sh neutron
+        - ./tools/deployment/common/run-helm-tests.sh nova
+        - ./tools/deployment/common/run-helm-tests.sh glance
+        - ./tools/deployment/common/run-helm-tests.sh keystone
+        - ./tools/deployment/common/use-it.sh
+        - ./tools/deployment/common/force-cronjob-run.sh
+
+- job:
+    name: openstack-helm-compute-kit-ovn
+    parent: openstack-helm-deploy
+    abstract: true
+    files:
+      - ^ovn/.*$
+      - ^openvswitch/.*$
+      - ^neutron/.*$
+      - ^zuul\.d/.*$
+      - ^tools/deployment/component/ovn/.*$
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - export VOLUME_HELM_ARGS="--set volume.enabled=false"; ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/heat/heat.sh
+        - export GLANCE_BACKEND=local; ./tools/deployment/component/glance/glance.sh
+        - ./tools/deployment/component/compute-kit/openvswitch.sh
+        - ./tools/deployment/component/compute-kit/libvirt.sh
+        - ./tools/deployment/component/ovn/ovn.sh
+        - ./tools/deployment/component/compute-kit/compute-kit.sh
+        - export OSH_TEST_TIMEOUT=1200;./tools/deployment/common/run-helm-tests.sh neutron
+        - ./tools/deployment/common/run-helm-tests.sh nova
+        - ./tools/deployment/common/run-helm-tests.sh glance
+        - ./tools/deployment/common/run-helm-tests.sh keystone
+        - ./tools/deployment/common/use-it.sh
+        - ./tools/deployment/common/force-cronjob-run.sh
+
+- job:
+    name: openstack-helm-keystone-ldap
+    parent: openstack-helm-deploy
+    abstract: true
+    files:
+      - ^keystone/.*$
+      - ^zuul\.d/.*$
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - ./tools/deployment/common/cert-manager.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/component/common/ldap.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+
+- job:
+    name: openstack-helm-cinder
+    parent: openstack-helm-deploy
+    abstract: true
+    files:
+      - ^cinder/.*$
+      - ^zuul\.d/.*$
+      - ^tools/deployment/component/cinder/.*$
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - ./tools/deployment/ceph/ceph.sh
+        - ./tools/deployment/ceph/ceph-ns-activate.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/cinder/cinder.sh
+        - ./tools/deployment/common/force-cronjob-run.sh
+
+- job:
+    name: openstack-helm-cinder-rook
+    parent: openstack-helm-deploy
+    nodeset: openstack-helm-5nodes-ubuntu_jammy
+    abstract: true
+    files:
+      - ^cinder/.*$
+      - ^zuul\.d/.*$
+      - ^tools/deployment/component/cinder/.*$
+      - ^tools/deployment/ceph/.*$
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - ./tools/deployment/ceph/ceph-rook.sh
+        - ./tools/deployment/ceph/ceph-adapter-rook.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/cinder/cinder.sh
+        - ./tools/deployment/common/force-cronjob-run.sh
+
+- job:
+    name: openstack-helm-umbrella
+    parent: openstack-helm-deploy
+    abstract: true
+    files:
+      - ^glance/.*$
+      - ^heat/.*$
+      - ^horizon/.*$
+      - ^keystone/.*$
+      - ^neutron/.*$
+      - ^nova/.*$
+      - ^openstack/.*$
+      - ^placement/.*$
+      - ^tools/deployment/common/force-cronjob-run.sh$
+      - ^tools/deployment/common/setup-client.sh$
+      - ^tools/deployment/component/common/openstack.sh$
+      - ^tools/deployment/common/use-it.sh$
+      - ^tools/deployment/common/validate-umbrella-upgrade-no-side-effects.sh$
+      - ^tools/deployment/common/validate-umbrella-upgrade-config-changes-do-not-update-other-components.sh$
+      - ^zuul\.d/.*$
+    vars:
+      run_helm_tests: "yes"
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - export GLANCE_BACKEND=local; ./tools/deployment/component/common/openstack.sh
+        - export HELM_TESTS_TRIES=3; export OSH_TEST_TIMEOUT=1200; ./tools/deployment/common/run-helm-tests.sh openstack
+        - ./tools/deployment/common/use-it.sh
+        - ./tools/deployment/common/force-cronjob-run.sh
+        - ./tools/deployment/common/validate-umbrella-upgrade-no-side-effects.sh
+        - ./tools/deployment/common/validate-umbrella-upgrade-config-changes-do-not-update-other-components.sh
+
+- job:
+    name: openstack-helm-horizon
+    parent: openstack-helm-deploy
+    abstract: true
+    files:
+      - ^horizon/.*$
+      - ^zuul\.d/.*$
+      - ^tools/deployment/component/horizon/.*$
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/horizon/horizon.sh
+
+- job:
+    name: openstack-helm-tls
+    parent: openstack-helm-deploy
+    nodeset: openstack-helm-5nodes-ubuntu_jammy
+    abstract: true
+    # NOTE(kozhukalov): The job is quite unstable now. Let's
+    # temporarily disable voting for this job to unblock the gate.
+    voting: false
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - ./tools/deployment/common/cert-manager.sh
+        - ./tools/deployment/ceph/ceph-rook.sh
+        - ./tools/deployment/ceph/ceph-adapter-rook.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/cinder/cinder.sh
+        - ./tools/deployment/component/heat/heat.sh
+        - ./tools/deployment/component/glance/glance.sh
+        - ./tools/deployment/component/compute-kit/openvswitch.sh
+        - ./tools/deployment/component/compute-kit/libvirt.sh
+        - ./tools/deployment/component/compute-kit/compute-kit.sh
+        - export OSH_TEST_TIMEOUT=1200; ./tools/deployment/common/run-helm-tests.sh neutron
+        - ./tools/deployment/common/run-helm-tests.sh nova
+        - ./tools/deployment/common/run-helm-tests.sh glance
+        - ./tools/deployment/common/run-helm-tests.sh keystone
+        - ./tools/deployment/common/run-helm-tests.sh cinder
+        - ./tools/deployment/common/use-it.sh
+        - ./tools/deployment/common/force-cronjob-run.sh
+
+- job:
+    name: openstack-helm-tacker
+    parent: openstack-helm-deploy
+    files:
+      - tacker/.*
+    abstract: true
+    timeout: 7200
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/heat/heat.sh
+        - export GLANCE_BACKEND=local; ./tools/deployment/component/glance/glance.sh
+        - ./tools/deployment/component/compute-kit/openvswitch.sh
+        - ./tools/deployment/component/compute-kit/libvirt.sh
+        - ./tools/deployment/component/compute-kit/compute-kit.sh
+        - ./tools/deployment/component/barbican/barbican.sh
+        - ./tools/deployment/component/nfs-provisioner/nfs-provisioner.sh
+        - ./tools/deployment/component/tacker/tacker.sh
+        - ./tools/deployment/common/run-helm-tests.sh tacker
+
+- job:
+    name: openstack-helm-skyline
+    parent: openstack-helm-deploy
+    timeout: 10800
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - export VOLUME_HELM_ARGS="--set volume.enabled=false"; ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/heat/heat.sh
+        - export GLANCE_BACKEND=local; ./tools/deployment/component/glance/glance.sh
+        - ./tools/deployment/component/compute-kit/openvswitch.sh
+        - ./tools/deployment/component/compute-kit/libvirt.sh
+        - ./tools/deployment/component/compute-kit/compute-kit.sh
+        - ./tools/deployment/component/skyline/skyline.sh
+        - ./tools/gate/selenium/skyline-selenium.sh
+
+- job:
+    name: openstack-helm-octavia
+    parent: openstack-helm-deploy
+    timeout: 10800
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - export VOLUME_HELM_ARGS="--set volume.enabled=false"; ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/heat/heat.sh
+        - export GLANCE_BACKEND=local; ./tools/deployment/component/glance/glance.sh
+        - ./tools/deployment/component/compute-kit/openvswitch.sh
+        - ./tools/deployment/component/compute-kit/libvirt.sh
+        - ./tools/deployment/component/compute-kit/compute-kit.sh
+        - ./tools/deployment/component/barbican/barbican.sh
+        - ./tools/deployment/component/octavia/octavia_resources.sh
+        - ./tools/deployment/component/octavia/octavia_certs.sh
+        - ./tools/deployment/component/octavia/octavia.sh
+        - ./tools/deployment/component/octavia/octavia_test.sh
+
+- job:
+    name: openstack-helm-watcher
+    parent: openstack-helm-deploy
+    timeout: 10800
+    files:
+      - watcher/.*
+    abstract: true
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - export VOLUME_HELM_ARGS="--set volume.enabled=false"; ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/heat/heat.sh
+        - export GLANCE_BACKEND=local; ./tools/deployment/component/glance/glance.sh
+        - ./tools/deployment/component/compute-kit/openvswitch.sh
+        - ./tools/deployment/component/compute-kit/libvirt.sh
+        - ./tools/deployment/component/compute-kit/compute-kit.sh
+        - ./tools/deployment/component/watcher/watcher.sh
+
+- job:
+    name: openstack-helm-blazar
+    parent: openstack-helm-deploy
+    timeout: 7200
+    files:
+      - blazar/.*
+    abstract: true
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - export GLANCE_BACKEND=local; ./tools/deployment/component/glance/glance.sh
+        - ./tools/deployment/component/compute-kit/openvswitch.sh
+        - ./tools/deployment/component/compute-kit/libvirt.sh
+        - ./tools/deployment/component/compute-kit/compute-kit.sh
+        - ./tools/deployment/component/blazar/blazar.sh
+        - ./tools/deployment/component/blazar/blazar_smoke_test.sh
+        - ./tools/deployment/common/run-helm-tests.sh blazar
+
+- job:
+    name: openstack-helm-cloudkitty
+    parent: openstack-helm-deploy
+    timeout: 7200
+    files:
+      - cloudkitty/.*
+    abstract: true
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - export VOLUME_HELM_ARGS="--set volume.enabled=false"; ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/heat/heat.sh
+        - export GLANCE_BACKEND=local; ./tools/deployment/component/glance/glance.sh
+        - ./tools/deployment/component/compute-kit/openvswitch.sh
+        - ./tools/deployment/component/compute-kit/libvirt.sh
+        - ./tools/deployment/component/compute-kit/compute-kit.sh
+        - ./tools/deployment/component/cloudkitty/cloudkitty.sh
+
+- job:
+    name: openstack-helm-freezer
+    parent: openstack-helm-deploy
+    timeout: 10800
+    files:
+      - freezer/.*
+    abstract: true
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - export VOLUME_HELM_ARGS="--set volume.enabled=false"; ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/freezer/freezer.sh
+        - ./tools/deployment/component/freezer/freezer_smoke_test.sh
+
+- job:
+    name: openstack-helm-zaqar
+    parent: openstack-helm-deploy
+    timeout: 10800
+    files:
+      - zaqar/.*
+    abstract: true
+    vars:
+      gate_scripts:
+        - ./tools/deployment/common/prepare-bashrc.sh
+        - ./tools/deployment/common/prepare-k8s.sh
+        - ./tools/deployment/common/prepare-charts.sh
+        - ./tools/deployment/common/setup-client.sh
+        - export VOLUME_HELM_ARGS="--set volume.enabled=false"; ./tools/deployment/component/common/rabbitmq.sh
+        - ./tools/deployment/db/mariadb.sh
+        - ./tools/deployment/component/common/memcached.sh
+        - ./tools/deployment/component/keystone/keystone.sh
+        - ./tools/deployment/component/redis/redis.sh
+        - ./tools/deployment/component/zaqar/zaqar.sh
+        - ./tools/deployment/component/zaqar/zaqar_smoke_test.sh
+...

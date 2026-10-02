@@ -1,16 +1,16 @@
 conf:
+  capi:
+    enabled: true 
+    apiServer: https://192.168.20.100:6443
   magnum:
+    capi_helm:
+      kubeconfig_file: /etc/magnum/kubeconfig.conf
+      default_helm_chart_version: 0.29.0
     DEFAULT:
       log_config_append: 
       debug: "True"
     api:
       workers: 2
-    cluster_template:
-      kubernetes_allowed_network_drivers: calico
-      kubernetes_default_network_driver: calico
-    capi_client:
-      endpoint_type: publicURL
-      insecure: "True"
     drivers:
       verify_ca: "False"
     barbican_client:

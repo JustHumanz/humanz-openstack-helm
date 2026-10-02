@@ -1,0 +1,10 @@
+volume:
+  class_name: ceph-rbd
+  backup:
+    enabled: true
+    class_name: ceph-rbd
+
+pod:
+  replicas:
+    server: 1
+    controller: 1

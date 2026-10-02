@@ -55,7 +55,7 @@ endpoints:
       public: 'http'
     port:
       novnc_proxy:
-        public: 6080
+        public: 80
 
 manifests:
   deployment_consoleauth: false

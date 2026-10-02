@@ -1,3 +1,7 @@
+labels:
+  api:
+    node_selector_key: openstack-control-plane
+
 conf:
   octavia_api_uwsgi:
     uwsgi:
@@ -8,7 +12,6 @@ conf:
       log_config_append: null
     api_settings:
       default_provider_driver: amphorav2
-      enabled_provider_drivers: ovn:'The ovn Provider',amphorav2:'The v2 amphora driver.',amphora:'The Octavia Amphora driver.',octavia:'Deprecated name of Amphora driver.' 
       healthcheck_enabled: false
     certificates:
       ca_certificate: /etc/octavia/certs/server/ca.crt
@@ -20,10 +23,10 @@ conf:
       client_cert: /etc/octavia/certs/client/tls-combined.pem
       server_ca: /etc/octavia/certs/server/ca.crt
     controller_worker:
-      amp_image_owner_id: f67d875976bc4d4aad13979bcbf98e96
-      amp_secgroup_list: 44c21478-c953-4689-a2bc-a7dee5d9acba
-      amp_flavor_id: 6db3ef45-ce99-4a39-b2fc-41a05a2e1096
-      amp_boot_network_list: dc9dd118-de10-4ac3-a608-3bc8b18fd4ce
+      amp_image_owner_id: ffb8d187fca34420ac1079cd2fe71a22
+      amp_secgroup_list: 28775db2-e2ea-4175-9d8e-a9547fdcbc48
+      amp_flavor_id: c498cc51-18e9-49aa-8760-8e410fc301d6
+      amp_boot_network_list: 56705508-8792-41d1-ae3c-276860f06f81
       amp_ssh_key_name: octavia-key
       amp_image_tag: octavia-amphora-image
       network_driver: allowed_address_pairs_driver
@@ -34,7 +37,7 @@ conf:
     task_flow:
       jobboard_enabled: false
     health_manager:
-      controller_ip_port_list: "192.168.18.100:5555"
+      controller_ip_port_list: "192.168.20.100:5555"
     cinder:
       endpoint_type: internalURL
       insecure: "True"
