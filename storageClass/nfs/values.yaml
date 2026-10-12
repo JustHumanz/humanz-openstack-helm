@@ -1,6 +1,6 @@
 nfs:
-  server: 192.168.20.100
-  path: /kube_pvc
+  server: 192.168.20.200
+  path: /csi/nfs_fast
   mountOptions:
   - tcp
   - rsize=131072
@@ -10,5 +10,5 @@ nfs:
   - retrans=2
   - vers=4
 storageClass:
-  name: nfs-client
-  defaultClass: false  
+  name: nfs-fast
+  defaultClass: false
