@@ -1,0 +1,6 @@
+volume:
+  class_name: ceph-rbd
+
+pod:
+  replicas:
+    server: 1

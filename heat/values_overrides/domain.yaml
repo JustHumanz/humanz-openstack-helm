@@ -3,11 +3,17 @@ endpoints:
     host_fqdn_override:
       public:
         host: "cloudformation.ctl1-humanz.cloud"
+        tls:
+          secretName: humanz-cloud-tls        
   orchestration:
     host_fqdn_override:
       public:
         host: "heat.ctl1-humanz.cloud"
+        tls:
+          secretName: humanz-cloud-tls        
   cloudwatch:
     host_fqdn_override:
       public:
         host: "cloudwatch.ctl1-humanz.cloud"
+        tls:
+          secretName: humanz-cloud-tls

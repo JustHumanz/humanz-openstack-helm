@@ -45,14 +45,18 @@ jobs:
     cron: "55 * * * *"
 
 manifests:
-  ingress_api: false
-  service_ingress_api: false
+  ingress_api: true
+  service_ingress_api: true
 
 network:
   api:
     node_port:
       enabled: true
       port: 32526
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /
+        cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
 
 pod:
   security_context:
@@ -60,3 +64,9 @@ pod:
       container:
         cinder_volume:
           privileged: true
+
+secrets:
+  tls:
+    volumev3:
+      api:
+        public: humanz-cloud-tls

@@ -10,7 +10,7 @@ bootstrap:
         image_type: qcow2
         container_format: bare
       ubuntu_miniaml_24:
-        name: "Ubuntu noble Minimal"
+        name: "Ubuntu Noble Minimal"
         source_url: "https://cloud-images.ubuntu.com/minimal/releases/noble/release/"
         image_file: "ubuntu-24.04-minimal-cloudimg-amd64.img"
         id: null
@@ -23,6 +23,14 @@ bootstrap:
         image_file: "ubuntu-16.04-minimal-cloudimg-amd64-disk1.img"
         id: null
         min_disk: 3
+        image_type: qcow2
+        container_format: bare
+      ubuntu_kube_v1.34.11:
+        name: "ubuntu-noble-kube-v1.34.11"
+        source_url: "https://azimuth-images.stackhpc.cloud/"
+        image_file: "ubuntu-noble-kube-v1.34.11-260914-1512.qcow2"
+        id: null
+        min_disk: 10
         image_type: qcow2
         container_format: bare
 
@@ -55,16 +63,44 @@ endpoints:
         public: 443
 
 manifests:
-  ingress_api: false
-  service_ingress_api: false
+  ingress_api: true
+  service_ingress_api: true
 
 network:
   api:
     node_port:
       enabled: true
       port: 32527
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /
+        cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
+
+pod:
+  probes:
+    api:
+      glance-api:
+        readiness:
+          enabled: false
+          params:
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 10
+        liveness:
+          enabled: false
+          params:
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 10
 
 storage: rbd
+
+secrets:
+  tls:
+    image:
+      api:
+        public: humanz-cloud-tls
 
 volume:
   class_name: ceph-rbd

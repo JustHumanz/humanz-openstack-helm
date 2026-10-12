@@ -25,7 +25,7 @@ labels:
     node_selector_key: openstack-control-plane
     node_selector_value: enabled
   driver_agent:
-    node_selector_key: openstack-control-plane
+    node_selector_key: openstack-network-node
     node_selector_value: enabled
   worker:
     node_selector_key: openstack-network-node
@@ -253,8 +253,6 @@ conf:
       api_handler: queue_producer
       bind_host: 0.0.0.0
       healthcheck_enabled: true
-      default_provider_driver: amphorav2
-      enabled_provider_drivers: amphorav2:'The v2 amphora driver.',amphora:'The Octavia Amphora driver.' 
     database:
       max_retries: -1
     health_manager:

@@ -1,0 +1,3 @@
+manifests:
+  ingress: false
+  service_ingress: false
