@@ -6,6 +6,9 @@ conf:
     capi_helm:
       kubeconfig_file: /etc/magnum/kubeconfig.conf
       default_helm_chart_version: 0.29.0
+    cluster_template:
+      kubernetes_allowed_network_drivers: cilium,calico
+      kubernetes_default_network_driver: calico
     DEFAULT:
       log_config_append: 
       debug: "True"
