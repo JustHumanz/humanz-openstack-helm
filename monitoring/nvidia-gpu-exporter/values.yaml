@@ -1,0 +1,167 @@
+image:
+  # -- Image repository
+  repository: docker.io/utkuozdemir/nvidia_gpu_exporter
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+  # -- Image tag (if not specified, defaults to the chart's appVersion)
+  tag: "1.3.1"
+
+# -- Image pull secrets
+imagePullSecrets: []
+# -- String to partially override fullname template with a string (will prepend the release name)
+nameOverride: ""
+# -- String to fully override fullname template with a string
+fullnameOverride: ""
+
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use. If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# -- Annotations for the pods
+podAnnotations: {}
+
+# -- Security context for the pods
+podSecurityContext: {}
+  # fsGroup: 2000
+
+# -- Security context for the container. Privileged is required for the collector to work properly.
+securityContext:
+  privileged: true
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  # -- Enables the Service
+  enabled: true
+  # -- Type of the service
+  type: NodePort
+  # -- Port for the service to use
+  port: 9835
+  # -- The node port to use if service type is NodePort or LoadBalancer.
+  nodePort: 32766
+
+ingress:
+  # -- Expose the app using an Ingress
+  # -- **Note:** Scraping the ingress
+  # -- will yield incomplete metrics since each DaemonSet pod is
+  # -- exposing the metrics of the GPU on the node it is on
+  enabled: false
+  # -- Ingress class name
+  className: ""
+  # -- Annotations for the Ingress
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- Ingress hosts configuration
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  # -- The TLS configuration for the Ingress
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+# -- The resource requests and limits of the container
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# -- The node selector for the deployment
+nodeSelector:
+  node: nvidia-gpu
+
+
+# -- Tolerations for the pod assignment
+tolerations: []
+
+# -- Affinity for the pod assignment
+affinity: {}
+
+# -- Port for the exporter to listen to
+port: 9835
+
+hostPort:
+  # -- Enable hostPort
+  enabled: false
+  # -- The hostPort to listen to
+  port: 9835
+
+log:
+  # -- Log level to be used by the exporter
+  level: info
+  # -- Log format to be used by the exporter
+  format: logfmt
+
+# -- `nvidia-smi` fields to be queried by the exporter
+queryFieldNames:
+  - AUTO
+
+# -- The command to run to get `nvidia-smi` compatible output. Can be custom path and/or args.
+nvidiaSmiCommand: nvidia-smi
+
+# -- The path to expose the metrics from
+telemetryPath: /metrics
+
+# -- The volumes to mount from the host
+# @default -- see [values.yaml](values.yaml)
+volumes:
+  - name: nvidiactl
+    hostPath:
+      path: /dev/nvidiactl
+  - name: nvidia0
+    hostPath:
+      path: /dev/nvidia0
+  - name: nvidia-smi
+    hostPath:
+      path: /usr/bin/nvidia-smi
+  - name: libnvidia-ml-so
+    hostPath:
+      path: /usr/lib/libnvidia-ml.so
+  - name: libnvidia-ml-so-1
+    hostPath:
+      path: /usr/lib/libnvidia-ml.so.1
+
+# -- The container mount configurations for the volumes
+# @default -- see [values.yaml](values.yaml)
+volumeMounts:
+  - name: nvidiactl
+    mountPath: /dev/nvidiactl
+  - name: nvidia0
+    mountPath: /dev/nvidia0
+  - name: nvidia-smi
+    mountPath: /usr/bin/nvidia-smi
+  - name: libnvidia-ml-so
+    mountPath: /usr/lib/x86_64-linux-gnu/libnvidia-ml.so
+  - name: libnvidia-ml-so-1
+    mountPath: /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1
+
+# -- Prometheus PodMonitor configuration
+# @default -- see [values.yaml](values.yaml)
+serviceMonitor:
+  enabled: false
+  additionalLabels: {}
+  scheme: http
+  bearerTokenFile:
+  interval:
+  tlsConfig: {}
+  proxyUrl: ""
+  relabelings: []
+  metricRelabelings: []
+  scrapeTimeout: 10s
+
+hostNetwork: false
