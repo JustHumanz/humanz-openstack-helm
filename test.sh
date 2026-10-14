@@ -62,9 +62,9 @@ for service in ${services[@]};
          continue
     fi
 
-    echo "$service" | grep -Eq '^(magnum|openvswitch|ovn)$'
+    echo "$service" | grep -Eq '^(ovn)$'
     if [[ $? -eq 0 ]]; then
-      default_helm_args+=(ubuntu_jammy)
+      default_helm_args+=(ubuntu_noble)
     fi
 
     test_helm $service "${default_helm_args[@]}"
