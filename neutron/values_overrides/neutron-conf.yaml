@@ -5,10 +5,11 @@ conf:
       router_distributed: True
       service_plugins: ovn-router
       l3_ha_network_type: geneve
+      dns_domain: humanz-local.cloud
   plugins:
     ml2_conf:
       ml2:
-        extension_drivers: port_security
+        extension_drivers: port_security,dns
         type_drivers: flat,vlan,geneve
         tenant_network_types: geneve
       ml2_type_vlan:
