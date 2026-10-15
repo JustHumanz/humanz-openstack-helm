@@ -8,7 +8,10 @@ conf:
   cinder:
     DEFAULT:
       os_region_name: RegionOne
-
+      backup_driver: "cinder.backup.drivers.nfs.NFSBackupDriver"
+      backup_share: 192.168.20.200:/csi/nfs_cinder/
+      backup_container: openstack-backups
+      backup_mount_point_base: /backup/openstack/cinder
 endpoints:
   identity:
     hosts:
@@ -64,6 +67,22 @@ pod:
       container:
         cinder_volume:
           privileged: true
+    cinder_backup:
+      container:
+        cinder_backup:
+          readOnlyRootFilesystem: false
+          runAsGroup: 42424
+          runAsUser: 42424
+          privileged: true
+  mounts:
+    cinder_backup:
+      cinder_backup:
+        volumeMounts:
+        - mountPath: /backup/openstack/cinder
+          name: nfs-backup
+        volumes:
+        - emptyDir: {}
+          name: nfs-backup
 
 secrets:
   tls:
