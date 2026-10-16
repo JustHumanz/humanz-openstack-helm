@@ -55,5 +55,5 @@ network:
 secrets:
   tls:
     network:
-      api:
+      server:
         public: humanz-cloud-tls
