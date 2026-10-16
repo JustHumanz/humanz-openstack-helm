@@ -1,0 +1,2 @@
+FROM quay.io/airshipit/cinder:2025.2-ubuntu_noble
+RUN sudo apt-get update && sudo apt-get install -y nfs-client
