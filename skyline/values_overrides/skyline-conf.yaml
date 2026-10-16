@@ -1,3 +1,35 @@
+<<<<<<< HEAD
 manifests:
   ingress: false
   service_ingress: false
+=======
+endpoints:
+  identity:
+    hosts:
+      default: keystone-api
+      internal: keystone-api
+    scheme:
+      public: https
+    port:
+      api:
+        default: 5000
+        public: 443
+  dashboard:
+    hosts:
+      default: skyline-api
+    scheme:
+      public: https
+    port:
+      api:
+        default: 80
+        public: 443
+
+manifests:
+  ingress: false
+  service_ingress: false
+
+network:
+  node_port:
+    enabled: true
+    port: 32537
+>>>>>>> b017134 (Add skyline)
