@@ -18,7 +18,20 @@ conf:
       vif_plugging_timeout: 300
       cpu_allocation_ratio: 8.0
       ram_allocation_ratio: 1.0
-      
+
+  overrides:
+    nova_compute:
+      hosts:
+      - name: ctl1-humanz
+        conf:
+          nova:
+            DEFAULT:
+              reserved_host_memory_mb: "20480"
+      - name: storage-humanz
+        conf:
+          nova:
+            DEFAULT:
+              cpu_allocation_ratio: 16
     vnc:
       auth_schemes: none
 
