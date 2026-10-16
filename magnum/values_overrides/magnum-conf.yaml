@@ -16,6 +16,7 @@ conf:
       workers: 2
     drivers:
       verify_ca: "False"
+      openstack_ca_file: /etc/magnum/certs/tls.crt
     barbican_client:
       endpoint_type: internalURL
       region_name: RegionOne
@@ -83,7 +84,16 @@ pod:
   replicas:
     api: 1
     conductor: 1
-
+  mounts:
+    magnum_conductor:
+      magnum_conductor:
+        volumeMounts: 
+          - name: public-certificates
+            mountPath: /etc/magnum/certs/
+        volumes:
+          - name: public-certificates
+            secret:
+              secretName: humanz-cloud-tls        
 secrets:
   tls:
     container_infra:
