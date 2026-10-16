@@ -18,6 +18,7 @@ conf:
         ovn_l3_scheduler: leastloaded
         dns_servers: 8.8.8.8,1.1.1.1
         neutron_sync_mode: repair
+        enable_distributed_floating_ip: true
 
 endpoints:
   network:
