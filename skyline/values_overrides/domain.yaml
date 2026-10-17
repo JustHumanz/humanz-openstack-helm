@@ -1,5 +1,7 @@
 endpoints:
-  dashboard:
+  skyline:
     host_fqdn_override:
       public:
         host: "skyline.ctl1-humanz.cloud"  
+        tls:
+          secretName: humanz-cloud-tls

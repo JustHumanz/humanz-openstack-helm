@@ -24,7 +24,7 @@ helm.sh/hook-weight: "-3"
 {{- $serviceTypes = append $serviceTypes $v }}
 {{- end }}
 {{- end }}
-{{- $volTypes := list "volumev3" -}}
+{{- $volTypes := list "block-storage" -}}
 {{- if .Values.conf.cinder.DEFAULT.enable_v1_api }}
 {{- $volTypes = append $volTypes "volume" }}
 {{- end }}

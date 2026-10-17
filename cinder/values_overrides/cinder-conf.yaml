@@ -12,6 +12,8 @@ conf:
       backup_share: 192.168.20.200:/csi/nfs_cinder/
       backup_container: openstack-backups
       backup_mount_point_base: /backup/openstack/cinder
+    keystone_authtoken:
+      service_type: block-storage      
 endpoints:
   identity:
     hosts:
@@ -33,16 +35,22 @@ endpoints:
       api:
         default: 9292
         public: 80
-  volumev3:
+  block_storage:
+    name: cinder
     hosts:
       default: cinder-api
+      public: cinder
+    path:
+      default: '/v3/%(tenant_id)s'
     scheme:
+      default: 'http'
+      service: 'http'
       public: 'https'
     port:
       api:
         default: 8776
         public: 443
-
+        service: 8776
 jobs:
   volume_usage_audit:
     cron: "55 * * * *"
@@ -86,6 +94,6 @@ pod:
 
 secrets:
   tls:
-    volumev3:
+    block_storage:
       api:
         public: humanz-cloud-tls

@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-manifests:
-  ingress: false
-  service_ingress: false
-=======
 endpoints:
   identity:
     hosts:
@@ -24,12 +19,41 @@ endpoints:
         default: 80
         public: 443
 
+conf:
+  skyline:
+    default:
+      debug: true
+      log_dir: /var/log
+      log_file: /dev/stdout
+      # These two params are only available in the custom skyline image
+      access_log_file: /dev/stdout
+      error_log_file: /dev/stdout
+    openstack:
+      interface_type: internal
+      service_mapping:
+        block-storage: cinder
+        compute: nova
+        container-infra: magnum
+        identity: keystone
+        image: glance
+        key-manager: barbican
+        load-balancer: octavia
+        network: neutron
+        object-store: swift
+        orchestration: heat
+        placement: placement
+
 manifests:
-  ingress: false
-  service_ingress: false
+  ingress: true
+  service_ingress: true
 
 network:
   node_port:
     enabled: true
     port: 32537
->>>>>>> b017134 (Add skyline)
+
+secrets:
+  tls:
+    skyline:
+      skyline:
+        public: humanz-cloud-tls
