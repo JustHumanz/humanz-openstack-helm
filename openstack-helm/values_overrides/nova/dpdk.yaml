@@ -1,7 +1,0 @@
----
-conf:
-  nova:
-    libvirt:
-      virt_type: kvm
-      cpu_mode: host-model
-...
