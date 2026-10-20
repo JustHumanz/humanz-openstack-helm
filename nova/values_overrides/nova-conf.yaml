@@ -27,6 +27,11 @@ conf:
           nova:
             DEFAULT:
               reserved_host_memory_mb: "20480"
+      - name: humanz-pc
+        conf:
+          nova:
+            DEFAULT:
+              reserved_host_memory_mb: "10240"              
       - name: storage-humanz
         conf:
           nova:
