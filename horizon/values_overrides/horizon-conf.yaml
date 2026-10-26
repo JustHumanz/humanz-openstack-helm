@@ -22,6 +22,16 @@ conf:
         csrf_trusted_origins: ["https://*.humanz.moe","https://*.kano2525.dev","https://*.ctl1-humanz.cloud"]
         enforce_password_check: "True"
     policy:
+      masakari:
+        admin_api: is_admin:True
+        context_is_admin: role:admin
+        admin_or_owner: is_admin:True or project_id:%(project_id)s
+        default: rule:admin_api
+        os_masakari_api:extensions: rule:admin_api
+        os_masakari_api:segments: rule:admin_api
+        os_masakari_api:os-hosts: rule:admin_api
+        os_masakari_api:notifications: rule:admin_api
+        os_masakari_api:vmoves: rule:admin_api
       load-balancer:
         context_is_admin: role:load-balancer_admin or role:admin
         load-balancer:admin: is_admin:True or role:load-balancer_admin or role:admin
@@ -122,7 +132,7 @@ conf:
     extra_panels:
       - heat_dashboard
       - octavia_dashboard
-
+      - magnum_ui
 endpoints:
   identity:
     hosts:

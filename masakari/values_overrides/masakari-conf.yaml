@@ -1,0 +1,44 @@
+conf:
+  masakari:
+    DEFAULT:
+      nova_catalog_admin_info: compute:nova:internalURL
+      nova_api_insecure: True
+  masakarimonitors:
+    host:
+      monitoring_driver: kubernetes
+    kubernetes:
+      monitoring_node_labels: openstack-compute-node=enabled
+  masakari_sudoers: |
+    Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/var/lib/openstack/bin"
+    masakari ALL=(ALL:ALL) NOPASSWD: /var/lib/openstack/bin/privsep-helper
+
+manifests:
+  host_monitor: true
+  instance_monitor: true
+  process_monitor: false
+  ingress_server: true
+  service_api: true
+  service_ingress_masakari: false
+
+network:
+  masakari_api:
+    ingress:
+      public: true
+      classes:
+        namespace: "nginx"
+        cluster: "nginx-cluster"
+      annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /
+
+pod:
+  security_context:
+    masakari:
+      container:
+        masakari_host_monitor:
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: true
+          runAsUser: 42424
+        masakari_instance_monitor:
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+          runAsUser: 0

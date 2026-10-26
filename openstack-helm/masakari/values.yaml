@@ -617,6 +617,13 @@ helm3_hook: true
 
 network:
   masakari_api:
+    ingress:
+      public: true
+      classes:
+        namespace: "nginx"
+        cluster: "nginx-cluster"
+      annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /
     node_port:
       enabled: false
       port: 33033
@@ -631,6 +638,7 @@ manifests:
   job_ks_service: true
   deployment_api: true
   deployment_engine: true
+  ingress_server: true
   configmap_bin: true
   configmap_etc: true
   secret_db: true
@@ -639,6 +647,7 @@ manifests:
   secret_registry: true
   job_rabbit_init: true
   service_api: true
+  service_ingress_masakari: true
   pdb_api: true
   # Host Monitors in containers needs pacemaker remote.
   host_monitor: false

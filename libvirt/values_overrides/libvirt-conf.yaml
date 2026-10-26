@@ -2,6 +2,9 @@
 conf:
   ceph:
     enabled: true
+  dynamic_options:
+    libvirt:
+      listen_interface: br-ext
 
 dependencies:
   dynamic:
