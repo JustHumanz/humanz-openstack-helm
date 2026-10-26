@@ -1,0 +1,11 @@
+---
+images:
+  tags:
+    db_sync: quay.io/airshipit/masakari:2025.2-ubuntu_noble
+    masakari_api: quay.io/airshipit/masakari:2025.2-ubuntu_noble
+    masakari_engine: quay.io/airshipit/masakari:2025.2-ubuntu_noble
+    masakari_host_monitor: hub.humanz.moe/library/masakari-monitors:2025.2-ubuntu_noble
+    masakari_process_monitor: hub.humanz.moe/library/masakari-monitors:2025.2-ubuntu_noble
+    masakari_instance_monitor: hub.humanz.moe/library/masakari-monitors:2025.2-ubuntu_noble
+    masakari_introspective_instance_monitor: hub.humanz.moe/library/masakari-monitors:2025.2-ubuntu_noble
+...

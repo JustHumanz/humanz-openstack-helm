@@ -18,7 +18,9 @@ conf:
       vif_plugging_timeout: 300
       cpu_allocation_ratio: 8.0
       ram_allocation_ratio: 1.0
-
+    libvirt:
+      cpu_mode: custom
+      cpu_model: kvm64      
   overrides:
     nova_compute:
       hosts:
