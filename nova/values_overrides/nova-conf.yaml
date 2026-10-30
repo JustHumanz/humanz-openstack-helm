@@ -100,11 +100,9 @@ network:
     ingress:
       annotations:
         nginx.ingress.kubernetes.io/rewrite-target: /
-        cert-manager.io/cluster-issuer: selfsigned-cluster-issuer        
   novncproxy:
     ingress:
       annotations:
-        cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
         nginx.org/websocket-services: "nova-novncproxy"
         nginx.org/proxy-read-timeout: "3600s"
         nginx.org/proxy-send-timeout: "3600s"

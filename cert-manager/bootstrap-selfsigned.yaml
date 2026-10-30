@@ -1,0 +1,56 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: bootstrap-selfsigned
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cluster-root-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: cluster-root-ca
+  secretName: cluster-root-ca
+  privateKey:
+    algorithm: RSA
+    size: 4096
+  issuerRef:
+    name: bootstrap-selfsigned
+    kind: ClusterIssuer
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: root-ca
+  namespace: cert-manager
+spec:
+  ca:
+    secretName: cluster-root-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cluster-intermediate-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: cluster-intermediate-ca
+  secretName: cluster-intermediate-ca
+  privateKey:
+    algorithm: RSA
+    size: 4096
+  usages: ["cert sign", "crl sign"]
+  issuerRef:
+    name: root-ca
+    kind: Issuer
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: cluster-ca
+spec:
+  ca:
+    secretName: cluster-intermediate-ca

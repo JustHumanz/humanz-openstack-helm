@@ -11,3 +11,6 @@ endpoints:
         host: "cinder.ctl1-humanz.cloud"
         tls:
           secretName: humanz-cloud-tls
+          issuerRef:
+            name: cluster-ca
+            kind: ClusterIssuer

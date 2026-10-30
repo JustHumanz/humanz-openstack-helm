@@ -4,4 +4,7 @@ endpoints:
       public:
         host: "load-balancer.ctl1-humanz.cloud"
         tls:
-          secretName: humanz-cloud-tls        
+          secretName: humanz-cloud-tls
+          issuerRef:
+            name: cluster-ca
+            kind: ClusterIssuer
