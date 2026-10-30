@@ -1,19 +1,19 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: cephfs-pvc
+  name: fast-cephfs-pvc
 spec:
   accessModes:
   - ReadWriteMany
   resources:
     requests:
       storage: 1Gi
-  storageClassName: rook-cephfs
+  storageClassName: rook-fast-cephfs
 ---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: cephfs-pod
+  name: fast-cephfs-pod
 spec:
   containers:
     - name: cephfs-test
@@ -25,4 +25,4 @@ spec:
   volumes:
     - name: cephfs-storage
       persistentVolumeClaim:
-        claimName: cephfs-pvc
+        claimName: fast-cephfs-pvc
