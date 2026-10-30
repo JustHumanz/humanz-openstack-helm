@@ -1,15 +1,17 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  generation: 1
-  name: humanz-cloud-selfsigned-tls
+  name: harbor-tls
   namespace: harbor
 spec:
-  commonName: '*.ctl1-humanz.cloud'
-  dnsNames:
-  - '*.ctl1-humanz.cloud'
-  isCA: true
-  issuerRef:
-    name: selfsigned-cluster-issuer
-    kind: ClusterIssuer
   secretName: humanz-cloud-tls
+  duration: 2160h
+  renewBefore: 360h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  dnsNames:
+    - harbor.ctl1-humanz.cloud
+  issuerRef:
+    kind: ClusterIssuer
+    name: cluster-ca

@@ -46,7 +46,11 @@ expose:
       ingress.kubernetes.io/proxy-body-size: "0"
       nginx.ingress.kubernetes.io/ssl-redirect: "true"
       nginx.ingress.kubernetes.io/proxy-body-size: "0"
-      cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
+      nginx.org/proxy-read-timeout: "3600s"
+      nginx.org/proxy-send-timeout: "3600s"
+      nginx.org/proxy-connect-timeout: "3600s"
+      nginx.org/client-max-body-size: "0"
+      nginx.org/keepalive-timeout: "3600s"
     # ingress-specific labels
     labels: {}
   route:
@@ -149,7 +153,7 @@ persistence:
       # Set it to "-" to disable dynamic provisioning
       storageClass: "rook-slow-cephfs"
       subPath: ""
-      accessMode: ReadWriteOnce
+      accessMode: ReadWriteMany
       size: 70G
       annotations: {}
     jobservice:
@@ -157,7 +161,7 @@ persistence:
         existingClaim: ""
         storageClass: "rook-fast-cephfs"
         subPath: ""
-        accessMode: ReadWriteOnce
+        accessMode: ReadWriteMany
         size: 1Gi
         annotations: {}
     # If external database is used, the following settings for database will
@@ -182,7 +186,7 @@ persistence:
       existingClaim: ""
       storageClass: "rook-fast-cephfs"
       subPath: ""
-      accessMode: ReadWriteOnce
+      accessMode: ReadWriteMany
       size: 5Gi
       annotations: {}
   # Define which storage backend is used for registry to store
@@ -368,7 +372,7 @@ updateStrategy:
   type: RollingUpdate
 
 # debug, info, warning, error or fatal
-logLevel: info
+logLevel: debug
 
 # The name of the secret which contains key named "ca.crt". Setting this enables the
 # download link on portal to download the CA certificate when the certificate isn't
@@ -798,7 +802,7 @@ jobservice:
   existingSecretKey: JOBSERVICE_SECRET
   # By default, the timeout is set to 30 minutes. This field only needs be re-configured if a longer request timeout is required. 
   # the value assigned to timeout should be a number without min, e.g. registryHttpClientTimeout: 60 configures the timeout to 60 minutes
-  registryHttpClientTimeout: 30
+  registryHttpClientTimeout: 60
 
 registry:
   registry:
