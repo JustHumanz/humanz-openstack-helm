@@ -78,7 +78,6 @@ network:
     ingress:
       annotations:
         nginx.ingress.kubernetes.io/rewrite-target: /
-        cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
 
 pod:
   replicas:
@@ -93,7 +92,7 @@ pod:
         volumes:
           - name: public-certificates
             secret:
-              secretName: humanz-cloud-tls        
+              secretName: humanz-cloud-tls
 secrets:
   tls:
     container_infra:

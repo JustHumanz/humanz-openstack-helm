@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: humanz-cloud-tls
+  namespace: openstack
+spec:
+  secretName: humanz-cloud-tls
+  duration: 2160h
+  renewBefore: 360h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  dnsNames:
+    - '*.ctl1-humanz.cloud'
+  issuerRef:
+    kind: ClusterIssuer
+    name: cluster-ca

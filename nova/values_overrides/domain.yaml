@@ -5,9 +5,15 @@ endpoints:
         host: "nova.ctl1-humanz.cloud"
         tls:
           secretName: humanz-cloud-tls
+          issuerRef:
+            name: cluster-ca
+            kind: ClusterIssuer
   compute_novnc_proxy:
     host_fqdn_override:
       public:
         host: "vnc.ctl1-humanz.cloud"
         tls:
           secretName: humanz-cloud-tls
+          issuerRef:
+            name: cluster-ca
+            kind: ClusterIssuer

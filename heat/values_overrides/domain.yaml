@@ -4,16 +4,25 @@ endpoints:
       public:
         host: "cloudformation.ctl1-humanz.cloud"
         tls:
-          secretName: humanz-cloud-tls        
+          secretName: humanz-cloud-tls
+          issuerRef:
+            name: cluster-ca
+            kind: ClusterIssuer      
   orchestration:
     host_fqdn_override:
       public:
         host: "heat.ctl1-humanz.cloud"
         tls:
-          secretName: humanz-cloud-tls        
+          secretName: humanz-cloud-tls
+          issuerRef:
+            name: cluster-ca
+            kind: ClusterIssuer    
   cloudwatch:
     host_fqdn_override:
       public:
         host: "cloudwatch.ctl1-humanz.cloud"
         tls:
           secretName: humanz-cloud-tls
+          issuerRef:
+            name: cluster-ca
+            kind: ClusterIssuer
