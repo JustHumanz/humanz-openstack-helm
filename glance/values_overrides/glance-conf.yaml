@@ -40,6 +40,9 @@ conf:
       rbd_store_chunk_size: 8
       rbd_store_replication: 1
       rbd_store_crush_rule: replicated_rule
+  glance_api_uwsgi:
+    uwsgi:
+      chunked-input-limit: "4096000"
 
 endpoints:
   identity:
