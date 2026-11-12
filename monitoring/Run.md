@@ -11,3 +11,7 @@ helm upgrade --install nvidia-gpu-exporter utkuozdemir/nvidia-gpu-exporter \
     --namespace monitoring \
     -f nvidia-gpu-exporter/values.yaml
 ```
+
+```
+helm upgrade --install -n monitoring prometheus-libvirt-openstack-exporter libvirt-exporter-helm-charts/charts/
+```
