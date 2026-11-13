@@ -1,167 +1,174 @@
-# This is a basic workflow to help you get started with Actions
+name: OpenStack Helm deploy
 
-name: OpenStack Helm workflows
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  pull_request:
+  push:
+    branches: [master]
     paths-ignore:
       - '.github/**'
-    branches: [ "master" ]
-    types: [opened, reopened]
   issue_comment:
-    types: [created, edited, deleted]  
-    
-  # Allows you to run this workflow manually from the Actions tab
+    types: [created]
   workflow_dispatch:
+    inputs:
+      services:
+        description: 'Space-separated services, e.g. "nova neutron"'
+        required: true
+
+permissions:
+  contents: read
+
+# Never run two deploys against the cluster at once
+concurrency:
+  group: openstack-deploy
+  cancel-in-progress: false
 
 env:
   FEATURES: ${{ vars.OPENSTACK_UBUNTU_VERSION }}
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  testing:
+  prepare:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    # For comments: PRs only, ".redeploy" prefix, trusted authors only
+    if: >
+      github.event_name != 'issue_comment' ||
+      (github.event.issue.pull_request &&
+       startsWith(github.event.comment.body, '.redeploy') &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
+                github.event.comment.author_association))
+    outputs:
+      services: ${{ steps.svc.outputs.services }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # Install wireguard
-      - name: Install wireguard
-        shell: bash
+      - name: Resolve services to deploy
+        id: svc
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          INPUT_SERVICES: ${{ inputs.services }}
         run: |
-          sudo apt update && sudo apt install wireguard curl jq -y
+          set -euo pipefail
 
-      # Get vpn config
-      - name: Decrypt wg.conf with GPG
-        run: |
-          gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output vpn/wg.conf vpn/wg.conf.enc
+          # Maps changed files to service names.
+          # ASSUMPTION: charts live in openstack-helm/<service>/...  Adjust to your layout.
+          files_to_services() {
+            awk -F/ '$1=="openstack-helm" && NF>2 {print $2}'
+          }
 
-      # start vpn config
-      - name: Start wg
-        run: |
-          sudo wg-quick up vpn/wg.conf
+          case "$EVENT" in
+            push)
+              services=$(git diff --name-only "$BEFORE" "$GITHUB_SHA" | files_to_services)
+              ;;
+            issue_comment)
+              state=$(gh pr view "$PR_NUMBER" --json state -q .state)
+              if [ "$state" != "MERGED" ]; then
+                echo "::error::PR #$PR_NUMBER is not merged, nothing to redeploy"
+                exit 1
+              fi
+              # ".redeploy nova neutron" -> explicit list; plain ".redeploy" -> PR's changed services
+              explicit=$(head -n1 <<<"$COMMENT_BODY" | tr -d '\r' | sed -E 's/^\.redeploy[[:space:]]*//')
+              if [ -n "$explicit" ]; then
+                services=$(tr -s ' ,' '\n' <<<"$explicit")
+              else
+                services=$(gh pr diff "$PR_NUMBER" --name-only | files_to_services)
+              fi
+              ;;
+            workflow_dispatch)
+              services=$(tr -s ' ,' '\n' <<<"$INPUT_SERVICES")
+              ;;
+          esac
 
-      # Check VPN connection
-      - name: Check keystone endpoint
-        shell: bash
-        run: |
-          curl http://keystone.ctl1-humanz.cloud 
+          services=$(grep -v '^$' <<<"$services" | sort -u || true)
 
-      # Install Helm
-      - name: Install helm 
-        shell: bash
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sudo bash
+          if grep -qvE '^[a-z0-9-]+$' <<<"$services"; then
+            echo "::error::Invalid service name in: $services"
+            exit 1
+          fi
 
-      # Drop kubeconfig
-      - name: Create kubeconfig
-        run: |
-          mkdir -p ${HOME}/.kube
-          echo ${{ secrets.KUBE_CONFIG }} | base64 --decode > ${HOME}/.kube/config
-
-      # Add helm repo & Install plugin
-      - name: openstack helm repo&plugin
-        shell: bash
-        run: |
-          /usr/local/bin/helm repo add openstack-helm https://tarballs.opendev.org/openstack/openstack-helm
-          /usr/local/bin/helm plugin install https://opendev.org/openstack/openstack-helm-plugin
-
-      # Get password config
-      - name: Decrypt all GPG pasword.yaml
-        run: |
-          for i in $(find . -name password.yaml.enc);
-          do
-              passfile=$(echo $i | sed 's/.enc//g')
-              gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output $passfile $i
-          done        
-
-      # Setup helm build
-      - name: Build helm deploy script
-        run: |
-          for service in $(ls openstack-helm/); 
-            do helm dependency build openstack-helm/$service
-          done
-
-      # Run Testing
-      - name: Testing helm cart
-        run: |
-          chmod +x ./test.sh 
-          ./test.sh 
+          json=$(jq -R -s -c 'split("\n") | map(select(length>0))' <<<"$services")
+          echo "services=$json" >> "$GITHUB_OUTPUT"
+          echo "Services to deploy: $json" | tee -a "$GITHUB_STEP_SUMMARY"
 
   deploy:
+    needs: prepare
+    if: needs.prepare.outputs.services != '[]'
     runs-on: ubuntu-latest
-    needs: testing
-    if: join(github.event.pull_request.labels.*.name, '') != '' || contains(github.event.comment.body, '.deploy')
+    environment: Prod
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        service: ${{ fromJSON(needs.prepare.outputs.services) }}
     steps:
       - uses: actions/checkout@v4
 
-      # Install wireguard
-      - name: Install wireguard
-        shell: bash
-        run: |
-          sudo apt update && sudo apt install wireguard curl jq -y
+      - name: Install WireGuard
+        run: sudo apt-get update && sudo apt-get install -y wireguard resolvconf curl jq
 
-      # Get vpn config
-      - name: Decrypt wg.conf with GPG
+      - name: Connect VPN
+        env:
+          WG_CONFIG: ${{ secrets.WG_CONFIG }}
         run: |
-          gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output vpn/wg.conf vpn/wg.conf.enc
+          printf '%s\n' "$WG_CONFIG" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf
+          sudo wg-quick up wg0
 
-      # start vpn config
-      - name: Start wg
-        run: |
-          sudo wg-quick up vpn/wg.conf
-
-      # Check VPN connection
       - name: Check keystone endpoint
-        shell: bash
         run: |
-          curl http://keystone.ctl1-humanz.cloud 
+          curl -fsS --max-time 15 --retry 5 --retry-delay 5 --retry-all-errors \
+            -o /dev/null http://keystone.ctl1-humanz.cloud
 
-      # Install Helm
-      - name: Install helm 
-        shell: bash
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sudo bash
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
 
-      # Drop kubeconfig
       - name: Create kubeconfig
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         run: |
-          mkdir -p ${HOME}/.kube
-          echo ${{ secrets.KUBE_CONFIG }} | base64 --decode > ${HOME}/.kube/config
+          mkdir -p "$HOME/.kube"
+          printf '%s' "$KUBE_CONFIG" | base64 --decode > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
 
-      # Add helm repo & Install plugin
-      - name: openstack helm repo&plugin
-        shell: bash
+      - name: Add OpenStack-Helm repo and plugin
         run: |
-          /usr/local/bin/helm repo add openstack-helm https://tarballs.opendev.org/openstack/openstack-helm
-          /usr/local/bin/helm plugin install https://opendev.org/openstack/openstack-helm-plugin
+          helm repo add openstack-helm https://tarballs.opendev.org/openstack/openstack-helm
+          helm plugin install https://opendev.org/openstack/openstack-helm-plugin
 
-      # Get password config
-      - name: Decrypt all GPG pasword.yaml
+      - name: Decrypt password.yaml files
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
-          for i in $(find . -name password.yaml.enc);
-          do
-              passfile=$(echo $i | sed 's/.enc//g')
-              gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output $passfile $i
+          mapfile -d '' files < <(find . -name 'password.yaml.enc' -print0)
+          for f in "${files[@]}"; do
+            gpg --quiet --batch --yes --pinentry-mode loopback \
+                --passphrase-fd 0 --output "${f%.enc}" --decrypt "$f" <<<"$GPG_PASSPHRASE"
           done
 
-      # Setup helm build
-      - name: Build helm deploy script
+      - name: Deploy ${{ matrix.service }}
+        env:
+          SERVICE: ${{ matrix.service }}
         run: |
-          for service in $(echo '${{ toJson(github.event.pull_request.labels) }}' | jq -r '.[].name'); 
-            do
-              if [ -d "openstack-helm/$service" ]; then
-                 helm dependency build openstack-helm/$service
-              else
-                 echo "Using Upstream Helm Chart for $service"
-              fi
-          done
-
-      # Run helm upgrade
-      - name: Update helm
-        run: |
+          if [ -d "openstack-helm/$SERVICE" ]; then
+            helm dependency build "openstack-helm/$SERVICE"
+          else
+            echo "Using upstream Helm chart for $SERVICE"
+          fi
           chmod +x deploy.sh
-          for service in $(echo '${{ toJson(github.event.pull_request.labels) }}' | jq -r '.[].name'); 
-            do ./deploy.sh $service
-          done
+          ./deploy.sh "$SERVICE"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          sudo wg-quick down wg0 || true
+          sudo rm -f /etc/wireguard/wg0.conf
+          rm -f "$HOME/.kube/config"
+          find . -name 'password.yaml' -delete

@@ -10,15 +10,12 @@ allowed_services=(
   keystone
   libvirt
   magnum
-  mariadb
-  memcached
   neutron
   nova
   octavia
   openvswitch
   ovn
   placement
-  swift
 )
 
 OVERRIDES_DIR=$pwd
