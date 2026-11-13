@@ -1,4 +1,5 @@
 *password.yaml
+openstack-kubeconfig.yaml
 test/
 wg.conf
 bin/clusterctl
