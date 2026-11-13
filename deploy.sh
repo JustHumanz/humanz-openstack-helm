@@ -18,7 +18,7 @@ allowed_services=(
   placement
 )
 
-OVERRIDES_DIR=$pwd
+OVERRIDES_DIR=$PWD
 
 values_dir=values_overrides
 
