@@ -18,18 +18,22 @@ data:
       "metadata": {
         "name": "adzzl5d",
         "namespace": "default",
-        "uid": "203064e5-2161-4165-9407-1ddbcfe98ba4",
-        "resourceVersion": "1794570938538010",
-        "generation": 26,
-        "creationTimestamp": "2026-11-13T09:53:45Z",
+        "uid": "c8425ca6-99ec-4538-91c8-278ae7ca8148",
+        "resourceVersion": "1794582282162018",
+        "generation": 1,
+        "creationTimestamp": "2026-11-13T15:04:42Z",
         "labels": {
-          "grafana.app/deprecatedInternalID": "4487878557822976"
+          "grafana.app/deprecatedInternalID": "62530365153280"
         },
         "annotations": {
-          "grafana.app/createdBy": "user:dg42go9k9aqyob",
-          "grafana.app/saved-from-ui": "Grafana v13.3.0 (6f8ce3c693)",
-          "grafana.app/updatedBy": "user:dg42go9k9aqyob",
-          "grafana.app/updatedTimestamp": "2026-11-13T11:55:38Z"
+          "grafana.app/createdBy": "access-policy:service",
+          "grafana.app/managedBy": "classic-file-provisioning",
+          "grafana.app/managerId": "sidecarProvider",
+          "grafana.app/sourceChecksum": "a6bef3ed0f5e5655977e95a546c6fd41",
+          "grafana.app/sourcePath": "/tmp/dashboards/nfs4-dashboard.json",
+          "grafana.app/sourceTimestamp": "1794582239000",
+          "grafana.app/updatedBy": "access-policy:service",
+          "grafana.app/folder": ""
         }
       },
       "spec": {
@@ -37,20 +41,20 @@ data:
           {
             "kind": "AnnotationQuery",
             "spec": {
-              "query": {
-                "kind": "DataQuery",
-                "group": "grafana",
-                "version": "v0",
-                "datasource": {
-                  "name": "-- Grafana --"
-                },
-                "spec": {}
-              },
+              "builtIn": true,
               "enable": true,
               "hide": true,
               "iconColor": "rgba(0, 211, 255, 1)",
               "name": "Annotations & Alerts",
-              "builtIn": true
+              "query": {
+                "datasource": {
+                  "name": "-- Grafana --"
+                },
+                "group": "grafana",
+                "kind": "DataQuery",
+                "spec": {},
+                "version": "v0"
+              }
             }
           }
         ],
@@ -60,10 +64,6 @@ data:
           "panel-1": {
             "kind": "Panel",
             "spec": {
-              "id": 1,
-              "title": "NFS4 Read",
-              "description": "",
-              "links": [],
               "data": {
                 "kind": "QueryGroup",
                 "spec": {
@@ -71,59 +71,39 @@ data:
                     {
                       "kind": "PanelQuery",
                       "spec": {
+                        "hidden": false,
                         "query": {
-                          "kind": "DataQuery",
-                          "group": "prometheus",
-                          "version": "v0",
                           "datasource": {
                             "name": "prometheus"
                           },
+                          "group": "prometheus",
+                          "kind": "DataQuery",
                           "spec": {
                             "editorMode": "builder",
                             "expr": "label_replace(label_replace(label_replace(rate(nfsd_read_bytes_total{client=\"$client\", path=~\"/mnt/nfs_data/csi/.+\"}[1m]), \"namespace\", \"$1\", \"path\", \".*/([^/-]+)-[^/]+-pvc-pvc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\"), \"pvc\", \"$1\", \"path\", \".*/[^/-]+-([^/]+?)-pvc-pvc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\") * 8, \"pv\", \"$1\", \"path\", \".*(pvc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\")",
                             "legendFormat": "{{client}} - {{ namespace }} - {{ pvc }} - {{ pv }}",
                             "range": true
-                          }
+                          },
+                          "version": "v0"
                         },
-                        "refId": "A",
-                        "hidden": false
+                        "refId": "A"
                       }
                     }
                   ],
-                  "transformations": [],
-                  "queryOptions": {}
+                  "queryOptions": {},
+                  "transformations": []
                 }
               },
+              "description": "",
+              "id": 1,
+              "links": [],
+              "title": "NFS4 Read",
               "vizConfig": {
-                "kind": "VizConfig",
                 "group": "timeseries",
-                "version": "13.3.0",
+                "kind": "VizConfig",
                 "spec": {
-                  "options": {
-                    "legend": {
-                      "calcs": [],
-                      "displayMode": "list",
-                      "placement": "bottom",
-                      "showLegend": true
-                    },
-                    "tooltip": {
-                      "hideZeros": false,
-                      "mode": "single",
-                      "sort": "none"
-                    }
-                  },
                   "fieldConfig": {
                     "defaults": {
-                      "unit": "Bps",
-                      "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                          {
-                            "value": 0,
-                            "color": "green"
-                          }
-                        ]
-                      },
                       "color": {
                         "mode": "palette-classic"
                       },
@@ -160,21 +140,41 @@ data:
                         "thresholdsStyle": {
                           "mode": "off"
                         }
-                      }
+                      },
+                      "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "green",
+                            "value": 0
+                          }
+                        ]
+                      },
+                      "unit": "Bps"
                     },
                     "overrides": []
+                  },
+                  "options": {
+                    "legend": {
+                      "calcs": [],
+                      "displayMode": "list",
+                      "placement": "bottom",
+                      "showLegend": true
+                    },
+                    "tooltip": {
+                      "hideZeros": false,
+                      "mode": "single",
+                      "sort": "none"
+                    }
                   }
-                }
+                },
+                "version": "13.3.0"
               }
             }
           },
           "panel-2": {
             "kind": "Panel",
             "spec": {
-              "id": 2,
-              "title": "NFS4 Write",
-              "description": "",
-              "links": [],
               "data": {
                 "kind": "QueryGroup",
                 "spec": {
@@ -182,59 +182,39 @@ data:
                     {
                       "kind": "PanelQuery",
                       "spec": {
+                        "hidden": false,
                         "query": {
-                          "kind": "DataQuery",
-                          "group": "prometheus",
-                          "version": "v0",
                           "datasource": {
                             "name": "prometheus"
                           },
+                          "group": "prometheus",
+                          "kind": "DataQuery",
                           "spec": {
                             "editorMode": "builder",
                             "expr": "label_replace(label_replace(label_replace(rate(nfsd_write_bytes_total{path=~\"/mnt/nfs_data/csi/.+\", client=\"$client\"}[1m]), \"namespace\", \"$1\", \"path\", \".*/([^/-]+)-[^/]+-pvc-pvc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\"), \"pvc\", \"$1\", \"path\", \".*/[^/-]+-([^/]+?)-pvc-pvc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\") * 8, \"pv\", \"$1\", \"path\", \".*(pvc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\")",
                             "legendFormat": "{{client}} - {{ namespace }} - {{ pvc }} - {{ pv }}",
                             "range": true
-                          }
+                          },
+                          "version": "v0"
                         },
-                        "refId": "A",
-                        "hidden": false
+                        "refId": "A"
                       }
                     }
                   ],
-                  "transformations": [],
-                  "queryOptions": {}
+                  "queryOptions": {},
+                  "transformations": []
                 }
               },
+              "description": "",
+              "id": 2,
+              "links": [],
+              "title": "NFS4 Write",
               "vizConfig": {
-                "kind": "VizConfig",
                 "group": "timeseries",
-                "version": "13.3.0",
+                "kind": "VizConfig",
                 "spec": {
-                  "options": {
-                    "legend": {
-                      "calcs": [],
-                      "displayMode": "list",
-                      "placement": "bottom",
-                      "showLegend": true
-                    },
-                    "tooltip": {
-                      "hideZeros": false,
-                      "mode": "single",
-                      "sort": "none"
-                    }
-                  },
                   "fieldConfig": {
                     "defaults": {
-                      "unit": "Bps",
-                      "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                          {
-                            "value": 0,
-                            "color": "green"
-                          }
-                        ]
-                      },
                       "color": {
                         "mode": "palette-classic"
                       },
@@ -271,21 +251,41 @@ data:
                         "thresholdsStyle": {
                           "mode": "off"
                         }
-                      }
+                      },
+                      "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "green",
+                            "value": 0
+                          }
+                        ]
+                      },
+                      "unit": "Bps"
                     },
                     "overrides": []
+                  },
+                  "options": {
+                    "legend": {
+                      "calcs": [],
+                      "displayMode": "list",
+                      "placement": "bottom",
+                      "showLegend": true
+                    },
+                    "tooltip": {
+                      "hideZeros": false,
+                      "mode": "single",
+                      "sort": "none"
+                    }
                   }
-                }
+                },
+                "version": "13.3.0"
               }
             }
           },
           "panel-3": {
             "kind": "Panel",
             "spec": {
-              "id": 3,
-              "title": "NFS Read Total",
-              "description": "",
-              "links": [],
               "data": {
                 "kind": "QueryGroup",
                 "spec": {
@@ -293,39 +293,61 @@ data:
                     {
                       "kind": "PanelQuery",
                       "spec": {
+                        "hidden": false,
                         "query": {
-                          "kind": "DataQuery",
-                          "group": "prometheus",
-                          "version": "v0",
                           "datasource": {
                             "name": "prometheus"
                           },
+                          "group": "prometheus",
+                          "kind": "DataQuery",
                           "spec": {
                             "editorMode": "builder",
                             "expr": "label_replace(label_replace(label_replace(nfsd_read_bytes_total{path=~\"/mnt/nfs_data/csi/.+\", client=\"$client\"}, \"namespace\", \"$1\", \"path\", \".*/([^/-]+)-[^/]+-pvc-pvc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\"), \"pvc\", \"$1\", \"path\", \".*/[^/-]+-([^/]+?)-pvc-pvc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\") * 8, \"pv\", \"$1\", \"path\", \".*(pvc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\")",
                             "legendFormat": "{{pvc}}",
                             "range": true
-                          }
+                          },
+                          "version": "v0"
                         },
-                        "refId": "A",
-                        "hidden": false
+                        "refId": "A"
                       }
                     }
                   ],
-                  "transformations": [],
-                  "queryOptions": {}
+                  "queryOptions": {},
+                  "transformations": []
                 }
               },
+              "description": "",
+              "id": 3,
+              "links": [],
+              "title": "NFS Read Total",
               "vizConfig": {
-                "kind": "VizConfig",
                 "group": "stat",
-                "version": "13.3.0",
+                "kind": "VizConfig",
                 "spec": {
+                  "fieldConfig": {
+                    "defaults": {
+                      "color": {
+                        "fixedColor": "#ad46ff",
+                        "mode": "thresholds"
+                      },
+                      "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "green",
+                            "value": 0
+                          }
+                        ]
+                      },
+                      "unit": "decbits"
+                    },
+                    "overrides": []
+                  },
                   "options": {
-                    "colorMode": "value",
+                    "colorMode": "background",
                     "graphMode": "area",
                     "justifyMode": "auto",
-                    "orientation": "horizontal",
+                    "orientation": "auto",
                     "percentChangeColorMode": "standard",
                     "reduceOptions": {
                       "calcs": [
@@ -337,37 +359,15 @@ data:
                     "showPercentChange": false,
                     "textMode": "auto",
                     "wideLayout": true
-                  },
-                  "fieldConfig": {
-                    "defaults": {
-                      "unit": "decbits",
-                      "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                          {
-                            "value": 0,
-                            "color": "green"
-                          }
-                        ]
-                      },
-                      "color": {
-                        "mode": "thresholds",
-                        "fixedColor": "#ad46ff"
-                      }
-                    },
-                    "overrides": []
                   }
-                }
+                },
+                "version": "13.3.0"
               }
             }
           },
           "panel-4": {
             "kind": "Panel",
             "spec": {
-              "id": 4,
-              "title": "NFS Write Total",
-              "description": "",
-              "links": [],
               "data": {
                 "kind": "QueryGroup",
                 "spec": {
@@ -375,39 +375,61 @@ data:
                     {
                       "kind": "PanelQuery",
                       "spec": {
+                        "hidden": false,
                         "query": {
-                          "kind": "DataQuery",
-                          "group": "prometheus",
-                          "version": "v0",
                           "datasource": {
                             "name": "prometheus"
                           },
+                          "group": "prometheus",
+                          "kind": "DataQuery",
                           "spec": {
                             "editorMode": "builder",
                             "expr": "label_replace(label_replace(label_replace(nfsd_write_bytes_total{path=~\"/mnt/nfs_data/csi/.+\", client=\"$client\"}, \"namespace\", \"$1\", \"path\", \".*/([^/-]+)-[^/]+-pvc-pvc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\"), \"pvc\", \"$1\", \"path\", \".*/[^/-]+-([^/]+?)-pvc-pvc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\") * 8, \"pv\", \"$1\", \"path\", \".*(pvc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\")",
                             "legendFormat": "{{ pvc }}",
                             "range": true
-                          }
+                          },
+                          "version": "v0"
                         },
-                        "refId": "A",
-                        "hidden": false
+                        "refId": "A"
                       }
                     }
                   ],
-                  "transformations": [],
-                  "queryOptions": {}
+                  "queryOptions": {},
+                  "transformations": []
                 }
               },
+              "description": "",
+              "id": 4,
+              "links": [],
+              "title": "NFS Write Total",
               "vizConfig": {
-                "kind": "VizConfig",
                 "group": "stat",
-                "version": "13.3.0",
+                "kind": "VizConfig",
                 "spec": {
+                  "fieldConfig": {
+                    "defaults": {
+                      "color": {
+                        "fixedColor": "#ad46ff",
+                        "mode": "thresholds"
+                      },
+                      "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "green",
+                            "value": 0
+                          }
+                        ]
+                      },
+                      "unit": "decbits"
+                    },
+                    "overrides": []
+                  },
                   "options": {
-                    "colorMode": "none",
+                    "colorMode": "background",
                     "graphMode": "area",
                     "justifyMode": "auto",
-                    "orientation": "horizontal",
+                    "orientation": "auto",
                     "percentChangeColorMode": "standard",
                     "reduceOptions": {
                       "calcs": [
@@ -417,29 +439,11 @@ data:
                       "values": false
                     },
                     "showPercentChange": false,
-                    "textMode": "value_and_name",
+                    "textMode": "auto",
                     "wideLayout": true
-                  },
-                  "fieldConfig": {
-                    "defaults": {
-                      "unit": "decbits",
-                      "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                          {
-                            "value": 0,
-                            "color": "green"
-                          }
-                        ]
-                      },
-                      "color": {
-                        "mode": "fixed",
-                        "fixedColor": "blue"
-                      }
-                    },
-                    "overrides": []
                   }
-                }
+                },
+                "version": "13.3.0"
               }
             }
           }
@@ -451,7 +455,6 @@ data:
               {
                 "kind": "RowsLayoutRow",
                 "spec": {
-                  "title": "NFS4 Bandwidth",
                   "collapse": false,
                   "layout": {
                     "kind": "GridLayout",
@@ -460,38 +463,38 @@ data:
                         {
                           "kind": "GridLayoutItem",
                           "spec": {
-                            "x": 0,
-                            "y": 0,
-                            "width": 24,
-                            "height": 11,
                             "element": {
                               "kind": "ElementReference",
                               "name": "panel-1"
-                            }
+                            },
+                            "height": 11,
+                            "width": 24,
+                            "x": 0,
+                            "y": 0
                           }
                         },
                         {
                           "kind": "GridLayoutItem",
                           "spec": {
-                            "x": 0,
-                            "y": 11,
-                            "width": 24,
-                            "height": 11,
                             "element": {
                               "kind": "ElementReference",
                               "name": "panel-2"
-                            }
+                            },
+                            "height": 11,
+                            "width": 24,
+                            "x": 0,
+                            "y": 11
                           }
                         }
                       ]
                     }
-                  }
+                  },
+                  "title": "NFS4 Bandwidth"
                 }
               },
               {
                 "kind": "RowsLayoutRow",
                 "spec": {
-                  "title": "NFS4 Stat",
                   "collapse": false,
                   "layout": {
                     "kind": "GridLayout",
@@ -500,32 +503,33 @@ data:
                         {
                           "kind": "GridLayoutItem",
                           "spec": {
-                            "x": 0,
-                            "y": 0,
-                            "width": 12,
-                            "height": 8,
                             "element": {
                               "kind": "ElementReference",
                               "name": "panel-3"
-                            }
+                            },
+                            "height": 8,
+                            "width": 12,
+                            "x": 0,
+                            "y": 0
                           }
                         },
                         {
                           "kind": "GridLayoutItem",
                           "spec": {
-                            "x": 12,
-                            "y": 0,
-                            "width": 12,
-                            "height": 8,
                             "element": {
                               "kind": "ElementReference",
                               "name": "panel-4"
-                            }
+                            },
+                            "height": 8,
+                            "width": 12,
+                            "x": 12,
+                            "y": 0
                           }
                         }
                       ]
                     }
-                  }
+                  },
+                  "title": "NFS4 Stat"
                 }
               }
             ]
@@ -533,12 +537,17 @@ data:
         },
         "links": [],
         "liveNow": false,
+        "preferences": {
+          "layout": {
+            "kind": "GridLayout",
+            "spec": {
+              "items": []
+            }
+          }
+        },
         "preload": false,
         "tags": [],
         "timeSettings": {
-          "timezone": "browser",
-          "from": "now-6h",
-          "to": "now",
           "autoRefresh": "",
           "autoRefreshIntervals": [
             "5s",
@@ -552,53 +561,48 @@ data:
             "2h",
             "1d"
           ],
+          "fiscalYearStartMonth": 0,
+          "from": "now-6h",
           "hideTimepicker": false,
-          "fiscalYearStartMonth": 0
+          "timezone": "browser",
+          "to": "now"
         },
         "title": "NFS4 Dashboard",
         "variables": [
           {
             "kind": "QueryVariable",
             "spec": {
-              "name": "client",
+              "allowCustomValue": true,
               "current": {
                 "text": "192.168.20.250",
                 "value": "192.168.20.250"
               },
+              "definition": "label_values(nfsd_read_bytes_total,client)",
               "hide": "dontHide",
-              "refresh": "onDashboardLoad",
-              "skipUrlSync": false,
+              "includeAll": false,
+              "multi": false,
+              "name": "client",
+              "options": [],
               "query": {
-                "kind": "DataQuery",
-                "group": "prometheus",
-                "version": "v0",
                 "datasource": {
                   "name": "prometheus"
                 },
+                "group": "prometheus",
+                "kind": "DataQuery",
                 "spec": {
                   "qryType": 1,
                   "query": "label_values(nfsd_read_bytes_total,client)",
                   "refId": "PrometheusVariableQueryEditor-VariableQuery"
-                }
+                },
+                "version": "v0"
               },
+              "refresh": "onDashboardLoad",
               "regex": "",
               "regexApplyTo": "value",
-              "sort": "disabled",
-              "definition": "label_values(nfsd_read_bytes_total,client)",
-              "options": [],
-              "multi": false,
-              "includeAll": false,
-              "allowCustomValue": true
+              "skipUrlSync": false,
+              "sort": "disabled"
             }
           }
-        ],
-        "preferences": {
-          "layout": {
-            "kind": "GridLayout",
-            "spec": {
-              "items": []
-            }
-          }
-        }
+        ]
       }
     }
