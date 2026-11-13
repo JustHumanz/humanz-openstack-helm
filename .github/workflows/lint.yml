@@ -21,7 +21,6 @@ jobs:
         dockerfile:
           - magnum/Dockerfile
           - octavia/Dockerfile
-          - masakari/Dockerfile
           - horizon/Dockerfile
 
     steps:
