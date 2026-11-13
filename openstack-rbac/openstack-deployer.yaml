@@ -20,8 +20,30 @@ metadata:
   namespace: openstack
 rules:
   - apiGroups: ["", "apps", "batch"]
-    resources: ["pods", "pods/log", "services", "configmaps", "secrets",
-                "deployments", "replicasets", "statefulsets", "jobs", "cronjobs"]
+    resources: ["pods", "pods/log", "pods/exec", "pods/portforward", "services",
+                "endpoints", "configmaps", "secrets", "serviceaccounts",
+                "persistentvolumeclaims", "events", "resourcequotas", "limitranges"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Workloads
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Availability / scaling / networking
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "networkpolicies"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Namespaced RBAC (only needed if the chart creates its own Roles/RoleBindings)
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
