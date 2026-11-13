@@ -3,8 +3,8 @@ name: OpenStack Helm deploy
 on:
   push:
     branches: [master]
-    paths-ignore:
-      - '.github/**'
+    paths:
+      - '!.github/**'
       - 'openstack-helm/barbican/**/*.y*ml'
       - 'openstack-helm/cinder/**/*.y*ml'
       - 'openstack-helm/glance/**/*.y*ml'
@@ -18,7 +18,7 @@ on:
       - 'openstack-helm/octavia/**/*.y*ml'
       - 'openstack-helm/openvswitch/**/*.y*ml'
       - 'openstack-helm/ovn/**/*.y*ml'
-      - 'openstack-helm/placement/**/*.y*ml'      
+      - 'openstack-helm/placement/**/*.y*ml'
   issue_comment:
     types: [created]
   workflow_dispatch:
