@@ -1,0 +1,79 @@
+name: Build Costume image
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '!.github/**'
+      - 'magnum/Dockerfile'
+      - 'horizon/Dockerfile'
+      - 'octavia/Dockerfile'
+
+jobs:
+  lint-dockerfiles:
+    name: Lint Dockerfiles
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        dockerfile:
+          - magnum/Dockerfile
+          - octavia/Dockerfile
+          - horizon/Dockerfile
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint ${{ matrix.dockerfile }}
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ${{ matrix.dockerfile }}
+
+  build-and-push:
+    name: Build ${{ matrix.image }}
+    needs: lint-dockerfiles
+    runs-on: ubuntu-latest
+    environment: Prod
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [magnum,horizon,octavia]
+
+    env:
+      REGISTRY: hub.humanz.moe
+      PROJECT: library
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3 
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+
+      - name: Image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.PROJECT }}/${{ matrix.service }}
+          tags: |
+            type=raw,value=${{ vars.OPENSTACK_UBUNTU_VERSION }}
+
+      - name: Build and push ${{ matrix.service }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.service }}
+          file: ./${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
