@@ -1,8 +1,8 @@
 FROM quay.io/airshipit/horizon:2025.2-ubuntu_noble
 RUN apt-get update && \
-    apt-get install --no-install-recommends python3-pip=24.0+dfsg-1ubuntu1.3 -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install --no-install-recommends python3-pip=24.0+dfsg-1ubuntu1.3 -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 RUN /var/lib/openstack/bin/python3 -m pip install --no-cache-dir \
     "octavia_dashboard~=14.0.0" "heat-dashboard~=12.0.0" "magnum-ui==17.0.0" \
     "python-magnumclient==4.9.0" "masakari-dashboard==13.0.0" "python-masakariclient===8.7.0"
