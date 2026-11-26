@@ -38,3 +38,4 @@ parameters:
   csi.storage.k8s.io/node-stage-secret-namespace: openstack
 
 reclaimPolicy: Delete
+allowVolumeExpansion: true

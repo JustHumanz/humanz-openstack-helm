@@ -1,0 +1,8 @@
+server:
+  dataStorage:
+    enabled: true
+    storageClass: "rook-fast-cephfs"
+
+  auditStorage:
+    enabled: true
+    storageClass: "rook-slow-cephfs"
